@@ -52,6 +52,7 @@ input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;ba
 .money div{text-align:center;padding:8px 12px;border-right:1px solid var(--line)}.money div:last-child{border:0}
 .money b{font-family:Archivo,sans-serif;font-size:17px}
 h3{margin:14px 14px 6px;font-size:16px;display:flex;gap:10px;align-items:center}.sa{margin-left:auto;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:600 13px "Source Sans 3",sans-serif}
+li.sub{list-style:none;margin:14px 2px 6px;padding:0 2px;font-size:15px;font-weight:800;letter-spacing:.01em;color:var(--ink)}li.sub:first-child{margin-top:2px}
 h3 span{font:600 14px "Source Sans 3",sans-serif;color:var(--mut)}
 ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 .it{display:flex;gap:10px;align-items:center;width:100%;min-height:40px;padding:6px 10px;background:var(--card);border:1px solid var(--line);border-radius:10px}
@@ -124,8 +125,8 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 </head>
 <body>
 <section id="login">
-  <h1>Verificación de Inventario</h1>
-  <p>Ingresa el PIN y tu nombre para ver los paquetes.</p>
+  <h1>Verificación de inventario</h1>
+  <p>Ingresa el PIN y tu nombre para ver el progreso.</p>
   <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off">
   <input id="nm" type="text" placeholder="Tu nombre" autocomplete="off">
   <p id="err"></p>
@@ -178,7 +179,8 @@ const H=(()=>{let m={},local=true;try{m=JSON.parse(localStorage.getItem("hist")|
     purge(ids){Object.keys(m).forEach(id=>{if(!ids.has(id))delete m[id]});save()}}})();
 /* Cada item se identifica por su texto (no por su posición): insertar o reordenar no pierde marcas */
 const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return(h>>>0).toString(36)};
-const items=p=>[["c",p.c],["m",p.m]].flatMap(([s,a])=>{const seen={};return a.map(t=>{const b=s+"_"+hash(t),n=seen[b]=(seen[b]||0)+1,ik=b+"_"+(n-1);return{k:p.id+"|"+ik,ik,t,s}})});
+const isH=t=>/^\(.+\)$/.test(String(t).trim());
+const items=p=>[["c",p.c],["m",p.m]].flatMap(([s,a])=>{const seen={};return a.filter(t=>!isH(t)).map(t=>{const b=s+"_"+hash(t),n=seen[b]=(seen[b]||0)+1,ik=b+"_"+(n-1);return{k:p.id+"|"+ik,ik,t,s}})});
 const prog=p=>{const it=items(p);return{d:it.filter(x=>store.get(x.k)).length,n:it.length}};
 const PLACE=txt=>"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="100%" height="100%" fill="#8884"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#888">'+txt+'</text></svg>');
 const PHC=new Map(),PHW=new Set(),pk=(c,n)=>c+"|"+n;
@@ -250,9 +252,10 @@ function renderList(){
 }
 function section(p,s,label,a){
   if(!a.length)return"";
-  const its=items(p).filter(x=>x.s===s),n=its.filter(x=>store.get(x.k)).length;
-  return'<h3><b>'+label+'</b><span>'+n+' de '+a.length+'</span><button class="sa" data-s="'+s+'">'+(n===a.length?"Desmarcar todo":"Marcar todo")+'</button></h3><ul>'+its.map(x=>{
-    const c=store.get(x.k);
+  const its=items(p).filter(x=>x.s===s),n=its.filter(x=>store.get(x.k)).length;let q=0;
+  return'<h3><b>'+label+'</b><span>'+n+' de '+its.length+'</span>'+(its.length?'<button class="sa" data-s="'+s+'">'+(n===its.length?"Desmarcar todo":"Marcar todo")+'</button>':"")+'</h3><ul>'+a.map(t=>{
+    if(isH(t))return'<li class="sub">'+esc(String(t).trim().slice(1,-1).trim())+'</li>';
+    const x=its[q++],c=store.get(x.k);
     return'<li><button class="it'+(c?" on":"")+'" data-k="'+esc(x.k)+'" role="checkbox" aria-checked="'+!!c+'"><span class="bx"></span><span class="tx">'+esc(x.t)+(c?'<small>'+esc(c.u)+', '+hm(c.t)+'</small>':"")+'</span></button></li>'}).join("")+'</ul>';
 }
 const fmt=t=>{const d=new Date(t),h=d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});return d.toDateString()===new Date().toDateString()?h:d.toLocaleDateString("es",{day:"2-digit",month:"2-digit"})+" "+h};
@@ -281,7 +284,7 @@ function renderDetail(){
    +(p.ob?'<div class="obs"><button class="oh" id="oh" aria-expanded="'+oo+'"><b>Observaciones</b>'+(oo?"":'<span class="op">'+esc(op)+'</span>')+'<span class="vm">'+(oo?"Ver menos":"Ver más")+'<span class="chev">'+I.dn+'</span></span></button>'+(oo?'<div class="ob">'+esc(p.ob)+'</div>':"")+'</div>':"")
    +section(p,"c","Contenido",p.c)+section(p,"m","Medicina",p.m)
    +(g.n?"":'<p class="empty">Este paquete no tiene items registrados.</p>')
-   +'<div class="foot"><button class="hb" id="hh" aria-label="Historial">'+I.h+(H.get(p.id).length?'<i>'+Math.min(H.get(p.id).length,99)+(H.get(p.id).length>99?"+":"")+'</i>':"")+'</button><div class="nav"><button id="pv" aria-label="Paquete anterior"'+(ix<1?" disabled":"")+'>'+I.l+'</button><span>'+(ix+1)+' de '+O.length+'</span><button id="nx" aria-label="Paquete siguiente"'+(ix>=O.length-1?" disabled":"")+'>'+I.r+'</button></div><button class="btn'+(ok?" done":"")+'" id="all"'+(g.n?"":" disabled")+'>'+(ok?"Desmarcar todo":"Marcar todo")+'</button></div>';
+   +'<div class="foot"><button class="hb" id="hh" aria-label="Historial">'+I.h+'</button><div class="nav"><button id="pv" aria-label="Paquete anterior"'+(ix<1?" disabled":"")+'>'+I.l+'</button><span>'+(ix+1)+' de '+O.length+'</span><button id="nx" aria-label="Paquete siguiente"'+(ix>=O.length-1?" disabled":"")+'>'+I.r+'</button></div><button class="btn'+(ok?" done":"")+'" id="all"'+(g.n?"":" disabled")+'>'+(ok?"Desmarcar todo":"Marcar todo")+'</button></div>';
   if(ok)$("#all").classList.add("done");
   loadPhotos(p);if(RT.on)RT.listenLog(p.id);
 }
@@ -400,13 +403,15 @@ function cleanup(){
   if(ch)try{localStorage.setItem("miss",JSON.stringify(miss))}catch(e){}
 }
 let rt;
-function startRefresh(){clearInterval(rt);rt=setInterval(()=>{if(!document.hidden&&PIN)loadData().catch(()=>{})},120000)}
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&PIN&&!$("#app").hidden)loadData().catch(()=>{})});
+const SES=12*3600*1000;
+const expired=()=>{try{const t=+localStorage.getItem("ts")||0;return !t||Date.now()-t>SES}catch(e){return false}};
+function startRefresh(){clearInterval(rt)}
+document.addEventListener("visibilitychange",()=>{if(document.hidden||!PIN||$("#app").hidden)return;if(expired()){try{localStorage.removeItem("pin");localStorage.removeItem("ts")}catch(e){}location.reload();return}loadData().catch(()=>{})});
 async function enter(pin,nm,auto){
   $("#err").textContent="";$("#go").disabled=true;$("#go").textContent="Entrando…";
   try{
     PIN=pin;S.user=nm;await loadData();await rtInit();
-    try{localStorage.setItem("who",nm);localStorage.setItem("pin",pin)}catch(e){}
+    try{localStorage.setItem("who",nm);localStorage.setItem("pin",pin);if(!auto)localStorage.setItem("ts",String(Date.now()))}catch(e){}
     $("#login").hidden=true;$("#app").hidden=false;startRefresh();
   }catch(e){
     PIN="";if(/PIN/.test(e.message)){try{localStorage.removeItem("pin")}catch(_){}}
@@ -420,7 +425,7 @@ $("#go").addEventListener("click",()=>{
   if(!pin){$("#err").textContent="Escribe el PIN.";return}
   enter(pin,nm);
 });
-try{const n=localStorage.getItem("who")||"",p=localStorage.getItem("pin")||"";$("#nm").value=n;if(n&&p)enter(p,n,true)}catch(e){}
+try{const n=localStorage.getItem("who")||"",p=localStorage.getItem("pin")||"";$("#nm").value=n;if(n&&p){if(expired()){localStorage.removeItem("pin")}else enter(p,n,true)}}catch(e){}
 </script>
 </body>
 </html>
