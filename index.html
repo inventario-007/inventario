@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Verificación de inventario</title>
+<title>Verificación de Inventario</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -104,12 +104,14 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 .flt{margin:6px 14px 0;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;display:grid;gap:10px}
 .hb{position:relative;flex:0 0 46px;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--card);display:grid;place-items:center}
 .hb i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--ink);color:var(--on-ink);font:600 11px/18px "Source Sans 3",sans-serif;text-align:center;font-style:normal}
+.htb{display:flex;gap:4px;margin:0 14px 6px;padding:3px;background:var(--line);border-radius:10px}.htb button{flex:1;border:0;background:none;color:var(--mut);font:inherit;font-size:13px;font-weight:600;padding:7px;border-radius:8px}.htb button[aria-selected=true]{background:var(--paper);color:var(--ink,inherit);box-shadow:0 1px 2px rgba(0,0,0,.15)}.pk{padding:10px 14px}.pk small{display:block;color:var(--mut);font-size:12px}.pk b{font-size:14px;word-break:break-all}.pkh{margin:6px 14px 0;font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 #hsh{position:fixed;inset:0;z-index:35}.hbd{position:absolute;inset:0;background:rgba(0,0,0,.45)}
 .hpn{position:absolute;left:0;right:0;bottom:0;max-height:75vh;display:flex;flex-direction:column;background:var(--paper);border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);animation:up .22s ease-out}
 .hph{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}.hph b{font:800 16px Archivo,sans-serif}.hph .ib{flex:0 0 36px;height:36px}
 .hpb{overflow-y:auto;padding:0 14px 12px}
 @keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 #ptr{height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mut);font-size:13px;font-weight:600;transition:height .2s}#ptr.drag{transition:none}
+#dptr{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:30;height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mut);font-size:13px;font-weight:600;background:var(--paper);transition:height .2s;pointer-events:none}#dptr.drag{transition:none}
 .sp{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .net{margin:8px 14px 0;padding:6px 10px;border-radius:8px;background:var(--abg);color:var(--atx);font-size:13px;font-weight:600}
@@ -122,7 +124,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 </head>
 <body>
 <section id="login">
-  <h1>Verificación de paquetes</h1>
+  <h1>Verificación de Inventario</h1>
   <p>Ingresa el PIN y tu nombre para ver los paquetes.</p>
   <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off">
   <input id="nm" type="text" placeholder="Tu nombre" autocomplete="off">
@@ -139,6 +141,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
     <div id="cities"></div>
   </header>
   <div id="ptr" aria-live="polite"></div>
+  <div id="dptr" aria-live="polite" hidden></div>
   <div id="net" class="net" hidden></div>
   <div class="fbar"><button class="ftb" id="ft" aria-expanded="false" aria-controls="fp"><span id="fi"></span><span class="fs" id="fs"></span><span id="sum"></span><span class="chev" id="fch"></span></button></div>
   <div class="flt" id="fp" hidden>
@@ -254,10 +257,17 @@ function section(p,s,label,a){
 }
 const fmt=t=>{const d=new Date(t),h=d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});return d.toDateString()===new Date().toDateString()?h:d.toLocaleDateString("es",{day:"2-digit",month:"2-digit"})+" "+h};
 function renderHist(){
-  const p=cur();if(!p)return;const a=H.get(p.id);
-  $(".hpn").innerHTML='<div class="hph"><b>Historial · '+cname(S.city)+' - '+p.n+'</b><button class="ib" id="hx" aria-label="Cerrar historial">'+I.x+'</button></div><div class="hpb">'+(a.length?'<ul class="hl">'+a.map(e=>'<li><div class="e1"><span><b>'+esc(e.u||"—")+'</b> <i class="'+(e.a==="marcó"?"em":"ed")+'">'+e.a+'</i></span><time>'+fmt(e.t)+'</time></div><div class="e2">'+esc(e.x)+(e.n?" ("+e.n+(e.n===1?" item)":" items)"):"")+'</div></li>').join("")+'</ul>':'<p class="empty">Aún no hay marcas en este paquete.</p>')+'</div>';
+  const p=cur();if(!p)return;const a=H.get(p.id),T=S.ht||"m";
+  const tabs='<div class="htb" role="tablist"><button role="tab" data-ht="m" aria-selected="'+(T==="m")+'">Marcas</button><button role="tab" data-ht="p" aria-selected="'+(T==="p")+'">Paquete</button></div>';
+  let body;
+  if(T==="m")body=a.length?'<ul class="hl">'+a.map(e=>'<li><div class="e1"><span><b>'+esc(e.u||"—")+'</b> <i class="'+(e.a==="marcó"?"em":"ed")+'">'+e.a+'</i></span><time>'+fmt(e.t)+'</time></div><div class="e2">'+esc(e.x)+(e.n?" ("+e.n+(e.n===1?" item)":" items)"):"")+'</div></li>').join("")+'</ul>':'<p class="empty">Aún no hay marcas en este paquete.</p>';
+  else{
+    const up=(p.up||[]).map(l=>{const m=l.match(/^(.*?)\s+a las\s+(.+)$/i);return m?{u:m[1],t:m[2]}:{u:l,t:""}});
+    body='<div class="pk"><small>Creado por</small><b>'+esc(p.by||"—")+'</b></div><h4 class="pkh">Actualizaciones</h4>'+(up.length?'<ul class="hl">'+up.map(e=>'<li><div class="e1"><span><b>'+esc(e.u)+'</b></span><time>'+esc(e.t)+'</time></div></li>').join("")+'</ul>':'<p class="empty">Sin actualizaciones registradas.</p>');
+  }
+  $(".hpn").innerHTML='<div class="hph"><b>'+(T==="m"?"Historial":"Paquete")+' · '+cname(S.city)+' - '+p.n+'</b><button class="ib" id="hx" aria-label="Cerrar">'+I.x+'</button></div>'+tabs+'<div class="hpb">'+body+'</div>';
 }
-function openHist(){S.hs=true;$("#hsh").hidden=false;renderHist()}
+function openHist(){S.hs=true;S.ht="m";$("#hsh").hidden=false;renderHist()}
 function closeHist(){S.hs=false;$("#hsh").hidden=true}
 function renderDetail(){
   const p=cur();if(!p)return;const O=S.order,ix=O.indexOf(S.open);
@@ -317,15 +327,17 @@ $("#out").addEventListener("click",()=>{
   closeHist();if(RT.on)RT.stopLogs();PIN="";DATA={};clearInterval(rt);try{localStorage.removeItem("pin")}catch(e){}
   $("#app").hidden=true;$("#login").hidden=false;$("#pin").value="";$("#err").textContent="";window.scrollTo(0,0);
 });
-$("#hsh").addEventListener("click",e=>{if(e.target.closest("#hx")||e.target.id==="hbd")closeHist()});
+$("#hsh").addEventListener("click",e=>{const t=e.target.closest("[data-ht]");if(t){S.ht=t.dataset.ht;renderHist();return}if(e.target.closest("#hx")||e.target.id==="hbd")closeHist()});
 /* Deslizar hacia abajo (en la lista, arriba del todo) para forzar la actualización */
-{const ptr=$("#ptr"),TH=110;let py=0,pull=0,on=false,wait=false;
-  const ready=()=>!$("#app").hidden&&$("#det").hidden&&$("#hsh").hidden&&window.scrollY<=0&&!!PIN&&!wait;
-  const close=()=>{ptr.classList.remove("drag");ptr.style.height="0px";setTimeout(()=>{if(!wait)ptr.textContent=""},220)};
-  document.addEventListener("touchstart",e=>{on=false;pull=0;if(!ready()||e.touches.length!==1||e.target.closest("input"))return;py=e.touches[0].clientY;on=true},{passive:true});
+{const TH=110;let ptr=$("#ptr"),py=0,pull=0,on=false,wait=false;
+  const inDet=()=>!$("#det").hidden;
+  const top=()=>inDet()?$("#det").scrollTop<=0:window.scrollY<=0;
+  const ready=()=>!$("#app").hidden&&$("#hsh").hidden&&$("#lb").hidden&&top()&&!!PIN&&!wait;
+  const close=()=>{ptr.classList.remove("drag");ptr.style.height="0px";setTimeout(()=>{if(!wait){ptr.textContent="";if(ptr.id==="dptr")ptr.hidden=true}},220)};
+  document.addEventListener("touchstart",e=>{on=false;pull=0;if(!ready()||e.touches.length!==1||e.target.closest("input"))return;py=e.touches[0].clientY;on=true;ptr=inDet()?$("#dptr"):$("#ptr");ptr.hidden=false},{passive:true});
   document.addEventListener("touchmove",e=>{
     if(!on)return;const dy=e.touches[0].clientY-py;
-    if(dy<=0||window.scrollY>0){if(pull){pull=0;close()}return}
+    if(dy<=0||!top()){if(pull){pull=0;close()}return}
     if(dy<8)return;
     if(e.cancelable)e.preventDefault();
     pull=dy;ptr.classList.add("drag");ptr.style.height=Math.min(64,dy*.45)+"px";
