@@ -44,7 +44,7 @@ input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;ba
 .bar i{display:block;height:100%;background:var(--tape)}
 .card.ok .bar i{background:var(--ok)}
 .cnt{font-size:13px;color:var(--mut)}
-#det{position:fixed;inset:0;z-index:20;background:var(--paper);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 calc(120px + env(safe-area-inset-bottom,0px))}
+#det{touch-action:pan-y;overflow-x:hidden;position:fixed;inset:0;z-index:20;background:var(--paper);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 calc(120px + env(safe-area-inset-bottom,0px))}
 .ph{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:12px 14px}
 .ph img{height:190px;width:auto;min-width:70%;object-fit:cover;border-radius:10px;scroll-snap-align:start;background:var(--line)}
 .money small{display:block;color:var(--mut);font-size:13px}
@@ -117,16 +117,16 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .net{margin:8px 14px 0;padding:6px 10px;border-radius:8px;background:var(--abg);color:var(--atx);font-size:13px;font-weight:600}
 @keyframes inR{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes inL{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
-#det.fl>:not(.foot){animation:inR .24s ease-out}#det.fr>:not(.foot){animation:inL .24s ease-out}
-@media (prefers-reduced-motion:reduce){#det>*,.hpn{animation:none!important}}
+#gh{position:fixed;left:0;right:0;top:0;overflow:hidden;background:var(--paper);z-index:24;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.hpn{animation:none!important}}
 #lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:12px}
 #lb img{max-width:100%;max-height:100%;border-radius:8px}
 </style>
 </head>
 <body>
 <section id="login">
-  <h1>Verificación de inventario</h1>
-  <p>Ingresa el PIN y tu nombre para ver el progreso.</p>
+  <h1>Verificación de Inventario</h1>
+  <p>Ingresa el PIN y tu nombre para ver los registros</p>
   <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off">
   <input id="nm" type="text" placeholder="Tu nombre" autocomplete="off">
   <p id="err"></p>
@@ -290,10 +290,27 @@ function renderDetail(){
 }
 function refresh(){const d=$("#det"),y=d.scrollTop;renderDetail();d.scrollTop=y;renderList();if(S.hs)renderHist()}
 function openDet(id){S.open=id;S.order=vis().map(x=>x.id);$("#det").hidden=false;document.body.classList.add("lock");renderDetail();$("#det").scrollTop=0}
-function go(d){
-  const O=S.order,i=O.indexOf(S.open)+d;if(i<0||i>=O.length)return;
-  S.open=O[i];const e=$("#det");e.classList.remove("fl","fr");renderDetail();e.scrollTop=0;
-  void e.offsetWidth;e.classList.add(d>0?"fl":"fr");setTimeout(()=>e.classList.remove("fl","fr"),300);
+const kids=()=>[...$("#det").children].filter(k=>!k.classList.contains("foot")&&k.id!=="gh");
+let busyGo=false;
+function go(d,fx){
+  const O=S.order,i=O.indexOf(S.open)+d;if(i<0||i>=O.length||busyGo)return;
+  const e=$("#det"),W=window.innerWidth,fromX=fx||0,y=e.scrollTop,foot=e.querySelector(".foot");
+  const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+  let gh=null;
+  if(!calm){
+    gh=document.createElement("div");gh.id="gh";gh.style.bottom=(foot?foot.offsetHeight:0)+"px";
+    const w=document.createElement("div");w.style.transform="translateY("+(-y)+"px)";
+    kids().forEach(k=>{const c=k.cloneNode(true);c.style.transform="none";c.style.animation="none";if(c.classList.contains("dh")){c.style.position="relative";c.style.top=y+"px"}w.appendChild(c)});
+    gh.appendChild(w);
+  }
+  S.open=O[i];renderDetail();e.scrollTop=0;
+  if(!gh||!gh.animate)return;
+  busyGo=true;e.appendChild(gh);
+  const ease="cubic-bezier(.25,.8,.25,1)",opt={duration:260,easing:ease,fill:"both"};
+  const out=gh.animate([{transform:"translateX("+fromX+"px)"},{transform:"translateX("+(-d*W)+"px)"}],opt);
+  kids().forEach(k=>k.animate([{transform:"translateX("+(d*W+fromX)+"px)"},{transform:"none"}],opt));
+  out.onfinish=()=>{gh.remove();busyGo=false};
+  setTimeout(()=>{gh.remove();busyGo=false},500);
 }
 function closeDet(){closeHist();S.open=null;$("#det").hidden=true;document.body.classList.remove("lock");renderList()}
 function setMark(p,x,on){if(RT.on)RT.set(p.id,x.ik,{on,u:S.user,t:Date.now()});else store.set(x.k,on?{u:S.user,t:Date.now()}:null)}
@@ -322,8 +339,19 @@ $("#det").addEventListener("click",e=>{
   const im=e.target.closest(".ph img");if(im){$("#lb img").src=im.src;$("#lb").hidden=false}
 });
 let sx=0,sy=0,sk=true;
-$("#det").addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;sk=!!e.target.closest(".ph,.foot")},{passive:true});
-$("#det").addEventListener("touchend",e=>{if(sk)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5)go(dx<0?1:-1)},{passive:true});
+{let dg=false,dxx=0;
+const edge=d=>{const O=S.order,i=O.indexOf(S.open)+d;return i<0||i>=O.length};
+$("#det").addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;sk=!!e.target.closest(".ph,.foot")||busyGo||e.touches.length>1;dg=false;dxx=0},{passive:true});
+$("#det").addEventListener("touchmove",e=>{if(sk)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+  if(!dg){if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.5)dg=true;else return}
+  dxx=edge(dx<0?1:-1)?dx*.25:dx;kids().forEach(k=>{k.style.transition="none";k.style.transform="translateX("+dxx+"px)"})},{passive:true});
+$("#det").addEventListener("touchend",e=>{if(sk)return;
+  if(dg){dg=false;const d=dxx<0?1:-1;
+    if(Math.abs(dxx)>70&&!edge(d)){go(d,dxx);return}
+    kids().forEach(k=>{k.style.transition="transform .2s ease-out";k.style.transform="";setTimeout(()=>{k.style.transition=""},220)});return}
+  },{passive:true});
+$("#det").addEventListener("touchcancel",()=>{if(dg){dg=false;kids().forEach(k=>{k.style.transition="";k.style.transform=""})}},{passive:true});
+}
 $("#th").addEventListener("click",()=>{PAL.m=dark()?"l":"d";applyPal()});
 $("#out").addEventListener("click",()=>{
   S.open=null;S.user="";S.q="";$("#q").value="";$("#qc").hidden=true;$("#det").hidden=true;document.body.classList.remove("lock");
@@ -342,6 +370,7 @@ $("#hsh").addEventListener("click",e=>{const t=e.target.closest("[data-ht]");if(
     if(!on)return;const dy=e.touches[0].clientY-py;
     if(dy<=0||!top()){if(pull){pull=0;close()}return}
     if(dy<8)return;
+    if(inDet()&&Math.abs(e.touches[0].clientX-sx)>dy*.7)return;
     if(e.cancelable)e.preventDefault();
     pull=dy;ptr.classList.add("drag");ptr.style.height=Math.min(64,dy*.45)+"px";
     ptr.textContent=dy>=TH?"Suelta para actualizar":"Desliza para actualizar";
