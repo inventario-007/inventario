@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Verificación de Inventario</title>
+<title>Verificación de inventario</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -112,6 +112,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 #ptr{height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mut);font-size:13px;font-weight:600;transition:height .2s}#ptr.drag{transition:none}
 .sp{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.net{margin:8px 14px 0;padding:6px 10px;border-radius:8px;background:var(--abg);color:var(--atx);font-size:13px;font-weight:600}
 @keyframes inR{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes inL{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
 #det.fl>:not(.foot){animation:inR .24s ease-out}#det.fr>:not(.foot){animation:inL .24s ease-out}
 @media (prefers-reduced-motion:reduce){#det>*,.hpn{animation:none!important}}
@@ -138,6 +139,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
     <div id="cities"></div>
   </header>
   <div id="ptr" aria-live="polite"></div>
+  <div id="net" class="net" hidden></div>
   <div class="fbar"><button class="ftb" id="ft" aria-expanded="false" aria-controls="fp"><span id="fi"></span><span class="fs" id="fs"></span><span id="sum"></span><span class="chev" id="fch"></span></button></div>
   <div class="flt" id="fp" hidden>
     <div class="fg"><small>Estado</small><div class="seg" id="est"></div></div>
@@ -150,6 +152,8 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 <div id="lb" hidden><img alt=""></div>
 <script>
 const API="https://script.google.com/macros/s/AKfycbwheTUxdUu3CW5TRQ4nuNJ6sOQYVD1f3RB9dlRLAZIGuWk1XXQ9gonApMe1XkDNr9g0/exec";
+/* Pega aquí el objeto firebaseConfig de tu proyecto. Mientras valga null, las marcas se guardan solo en cada teléfono. */
+const FIREBASE_CONFIG={apiKey:"AIzaSyADklHP0Cxx5LF8vyYqHBdBuDXhZmPoWKo",authDomain:"inventario-b6c7d.firebaseapp.com",databaseURL:"https://inventario-b6c7d-default-rtdb.firebaseio.com",projectId:"inventario-b6c7d",storageBucket:"inventario-b6c7d.firebasestorage.app",messagingSenderId:"1079746598808",appId:"1:1079746598808:web:8fc4769de69a3e084a7ded"};
 let DATA={},PIN="";
 const keep=s=>/[\p{L}\p{N}]/u.test(s);/* omite líneas que solo tienen símbolos: ****, ---, ( ) … */
 const $=s=>document.querySelector(s);
@@ -159,15 +163,19 @@ const hm=t=>new Date(t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"
 const money=v=>v==null?"—":"$"+v;
 const S={city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
 /* Capa de datos: aquí se conectará Firebase en la versión en vivo */
-const store=(()=>{let m={};try{m=JSON.parse(localStorage.getItem("chk")||"{}")}catch(e){}
-  return{get:k=>m[k],set(k,v){if(v)m[k]=v;else delete m[k];try{localStorage.setItem("chk",JSON.stringify(m))}catch(e){}},
-  purge(ids){let c=0;Object.keys(m).forEach(k=>{if(!ids.has(k.split("|")[0])){delete m[k];c=1}});if(c)try{localStorage.setItem("chk",JSON.stringify(m))}catch(e){}}}})();
-/* Historial: se guarda por id de paquete; si el paquete ya no existe, se borra con él */
-const H=(()=>{let m={};try{m=JSON.parse(localStorage.getItem("hist")||"{}")}catch(e){}
-  const save=()=>{try{localStorage.setItem("hist",JSON.stringify(m))}catch(e){}};
-  return{get:id=>m[id]||[],add(id,a,x,n){(m[id]=m[id]||[]).unshift({u:S.user,t:Date.now(),a,x,n});if(m[id].length>200)m[id].length=200;save()},
+const store=(()=>{let m={},local=true;try{m=JSON.parse(localStorage.getItem("chk")||"{}")}catch(e){}
+  const save=()=>{if(local)try{localStorage.setItem("chk",JSON.stringify(m))}catch(e){}};
+  return{get:k=>m[k],set(k,v){if(v)m[k]=v;else delete m[k];save()},replace(o){m=o},useRemote(){local=false;m={}},
+    purge(ids){let c=0;Object.keys(m).forEach(k=>{if(!ids.has(k.split("|")[0])){delete m[k];c=1}});if(c)save()}}})();
+/* Historial: por id de paquete; si el paquete ya no existe, se borra con él */
+const H=(()=>{let m={},local=true;try{m=JSON.parse(localStorage.getItem("hist")||"{}")}catch(e){}
+  const save=()=>{if(local)try{localStorage.setItem("hist",JSON.stringify(m))}catch(e){}};
+  return{get:id=>m[id]||[],set(id,a){m[id]=a},drop(id){delete m[id];save()},useRemote(){local=false;m={}},
+    add(id,a,x,n){(m[id]=m[id]||[]).unshift({u:S.user,t:Date.now(),a,x,n});if(m[id].length>200)m[id].length=200;save()},
     purge(ids){Object.keys(m).forEach(id=>{if(!ids.has(id))delete m[id]});save()}}})();
-const items=p=>[["c",p.c],["m",p.m]].flatMap(([s,a])=>a.map((t,i)=>({k:p.id+"|"+s+"|"+i+"|"+t,t,s})));
+/* Cada item se identifica por su texto (no por su posición): insertar o reordenar no pierde marcas */
+const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return(h>>>0).toString(36)};
+const items=p=>[["c",p.c],["m",p.m]].flatMap(([s,a])=>{const seen={};return a.map(t=>{const b=s+"_"+hash(t),n=seen[b]=(seen[b]||0)+1,ik=b+"_"+(n-1);return{k:p.id+"|"+ik,ik,t,s}})});
 const prog=p=>{const it=items(p);return{d:it.filter(x=>store.get(x.k)).length,n:it.length}};
 const PLACE=txt=>"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="100%" height="100%" fill="#8884"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#888">'+txt+'</text></svg>');
 const PHC=new Map(),PHW=new Set(),pk=(c,n)=>c+"|"+n;
@@ -198,7 +206,7 @@ async function load_(force){
   Object.values(D).forEach(a=>a.forEach(p=>{p.c=p.c.filter(keep);p.m=p.m.filter(keep)}));
   DATA=D;
   const ids=new Set(Object.values(D).flat().map(p=>p.id));
-  if(ids.size){store.purge(ids);H.purge(ids)}   /* paquetes que ya no existen: se borran sus marcas e historial */
+  if(RT.on)cleanup();else if(ids.size){store.purge(ids);H.purge(ids)}   /* paquetes que ya no existen: se borran sus marcas e historial */
   if(S.open&&!cur()){closeDet()}else if(S.open){refresh()}
   renderTop();renderList();
 }
@@ -239,10 +247,10 @@ function renderList(){
 }
 function section(p,s,label,a){
   if(!a.length)return"";
-  const n=a.filter((t,i)=>store.get(p.id+"|"+s+"|"+i+"|"+t)).length;
-  return'<h3><b>'+label+'</b><span>'+n+' de '+a.length+'</span><button class="sa" data-s="'+s+'">'+(n===a.length?"Desmarcar todo":"Marcar todo")+'</button></h3><ul>'+a.map((t,i)=>{
-    const k=p.id+"|"+s+"|"+i+"|"+t,c=store.get(k);
-    return'<li><button class="it'+(c?" on":"")+'" data-k="'+esc(k)+'" role="checkbox" aria-checked="'+!!c+'"><span class="bx"></span><span class="tx">'+esc(t)+(c?'<small>'+esc(c.u)+', '+hm(c.t)+'</small>':"")+'</span></button></li>'}).join("")+'</ul>';
+  const its=items(p).filter(x=>x.s===s),n=its.filter(x=>store.get(x.k)).length;
+  return'<h3><b>'+label+'</b><span>'+n+' de '+a.length+'</span><button class="sa" data-s="'+s+'">'+(n===a.length?"Desmarcar todo":"Marcar todo")+'</button></h3><ul>'+its.map(x=>{
+    const c=store.get(x.k);
+    return'<li><button class="it'+(c?" on":"")+'" data-k="'+esc(x.k)+'" role="checkbox" aria-checked="'+!!c+'"><span class="bx"></span><span class="tx">'+esc(x.t)+(c?'<small>'+esc(c.u)+', '+hm(c.t)+'</small>':"")+'</span></button></li>'}).join("")+'</ul>';
 }
 const fmt=t=>{const d=new Date(t),h=d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});return d.toDateString()===new Date().toDateString()?h:d.toLocaleDateString("es",{day:"2-digit",month:"2-digit"})+" "+h};
 function renderHist(){
@@ -265,7 +273,7 @@ function renderDetail(){
    +(g.n?"":'<p class="empty">Este paquete no tiene items registrados.</p>')
    +'<div class="foot"><button class="hb" id="hh" aria-label="Historial">'+I.h+(H.get(p.id).length?'<i>'+Math.min(H.get(p.id).length,99)+(H.get(p.id).length>99?"+":"")+'</i>':"")+'</button><div class="nav"><button id="pv" aria-label="Paquete anterior"'+(ix<1?" disabled":"")+'>'+I.l+'</button><span>'+(ix+1)+' de '+O.length+'</span><button id="nx" aria-label="Paquete siguiente"'+(ix>=O.length-1?" disabled":"")+'>'+I.r+'</button></div><button class="btn'+(ok?" done":"")+'" id="all"'+(g.n?"":" disabled")+'>'+(ok?"Desmarcar todo":"Marcar todo")+'</button></div>';
   if(ok)$("#all").classList.add("done");
-  loadPhotos(p);
+  loadPhotos(p);if(RT.on)RT.listenLog(p.id);
 }
 function refresh(){const d=$("#det"),y=d.scrollTop;renderDetail();d.scrollTop=y;renderList();if(S.hs)renderHist()}
 function openDet(id){S.open=id;S.order=vis().map(x=>x.id);$("#det").hidden=false;document.body.classList.add("lock");renderDetail();$("#det").scrollTop=0}
@@ -275,13 +283,14 @@ function go(d){
   void e.offsetWidth;e.classList.add(d>0?"fl":"fr");setTimeout(()=>e.classList.remove("fl","fr"),300);
 }
 function closeDet(){closeHist();S.open=null;$("#det").hidden=true;document.body.classList.remove("lock");renderList()}
-function toggle(k){const on=!store.get(k),x=k.split("|").slice(3).join("|");store.set(k,on?{u:S.user,t:Date.now()}:null);H.add(S.open,on?"marcó":"desmarcó",x);refresh()}
+function setMark(p,x,on){if(RT.on)RT.set(p.id,x.ik,{on,u:S.user,t:Date.now()});else store.set(x.k,on?{u:S.user,t:Date.now()}:null)}
+function logEv(id,a,x,n){const e={u:S.user,t:Date.now(),a,x};if(n)e.n=n;if(RT.on)RT.push(id,e);else H.add(id,a,x,n)}
+function toggle(k){const p=cur(),x=items(p).find(i=>i.k===k);if(!x)return;const on=!store.get(k);setMark(p,x,on);logEv(p.id,on?"marcó":"desmarcó",x.t);rf()}
 function markAll(sec){
-  const it=items(cur()).filter(x=>!sec||x.s===sec),all=it.every(x=>store.get(x.k));
-  const ch=it.filter(x=>all?store.get(x.k):!store.get(x.k)).length;
-  it.forEach(x=>store.set(x.k,all?null:(store.get(x.k)||{u:S.user,t:Date.now()})));
-  if(ch)H.add(S.open,all?"desmarcó":"marcó",!sec?"todo el paquete":sec==="c"?"todo el contenido":"toda la medicina",ch);
-  refresh();
+  const p=cur(),it=items(p).filter(x=>!sec||x.s===sec),all=it.every(x=>store.get(x.k)),ch=it.filter(x=>all?store.get(x.k):!store.get(x.k));
+  ch.forEach(x=>setMark(p,x,!all));
+  if(ch.length)logEv(p.id,all?"desmarcó":"marcó",!sec?"todo el paquete":sec==="c"?"todo el contenido":"toda la medicina",ch.length);
+  rf();
 }
 $("#app").addEventListener("click",e=>{const c=e.target.closest("[data-c]"),s=e.target.closest("[data-e]"),v=e.target.closest("[data-v]");
   if(c)S.city=c.dataset.c;if(s)S.est=s.dataset.e;if(v)S.v=v.dataset.v;if(c||s||v){renderTop();renderList()}});
@@ -305,7 +314,7 @@ $("#det").addEventListener("touchend",e=>{if(sk)return;const t=e.changedTouches[
 $("#th").addEventListener("click",()=>{PAL.m=dark()?"l":"d";applyPal()});
 $("#out").addEventListener("click",()=>{
   S.open=null;S.user="";S.q="";$("#q").value="";$("#qc").hidden=true;$("#det").hidden=true;document.body.classList.remove("lock");
-  closeHist();PIN="";DATA={};clearInterval(rt);try{localStorage.removeItem("pin")}catch(e){}
+  closeHist();if(RT.on)RT.stopLogs();PIN="";DATA={};clearInterval(rt);try{localStorage.removeItem("pin")}catch(e){}
   $("#app").hidden=true;$("#login").hidden=false;$("#pin").value="";$("#err").textContent="";window.scrollTo(0,0);
 });
 $("#hsh").addEventListener("click",e=>{if(e.target.closest("#hx")||e.target.id==="hbd")closeHist()});
@@ -332,13 +341,59 @@ $("#hsh").addEventListener("click",e=>{if(e.target.closest("#hx")||e.target.id==
   });
 }
 $("#lb").addEventListener("click",()=>$("#lb").hidden=true);
+const RT={on:false,ids:new Set(),logs:{}};
+const rf=(()=>{let q=0;return()=>{if(q)return;q=1;setTimeout(()=>{q=0;if(!$("#app").hidden)refresh()},0)}})();
+async function fbLib(){
+  if(window.__FB)return window.__FB;
+  const[a,d]=await Promise.all([import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js")]);
+  return Object.assign({},a,d);
+}
+async function rtInit(){
+  if(!FIREBASE_CONFIG||RT.on)return;
+  try{
+    const f=await fbLib(),db=f.getDatabase(f.initializeApp(FIREBASE_CONFIG));
+    RT.f=f;RT.db=db;
+    const first=new Promise(res=>{RT.first=res});
+    f.onValue(f.ref(db,"checks"),snap=>{
+      const v=snap.val()||{},m={};RT.ids=new Set(Object.keys(v));
+      for(const id in v)for(const ik in v[id]){const c=v[id][ik];if(c&&c.on)m[id+"|"+ik]={u:c.u,t:c.t}}
+      store.replace(m);RT.first&&RT.first();rf();cleanup();
+    },()=>{$("#net").textContent="No se pudo leer la base de datos. Revisa las reglas de Firebase.";$("#net").hidden=false;RT.first&&RT.first()});
+    let nt;f.onValue(f.ref(db,".info/connected"),s=>{clearTimeout(nt);if(s.val())$("#net").hidden=true;else nt=setTimeout(()=>{$("#net").textContent="Sin conexión: tus marcas se guardarán cuando vuelva el internet.";$("#net").hidden=false},3000)});
+    store.useRemote();H.useRemote();RT.on=true;
+    await Promise.race([first,new Promise(r=>setTimeout(r,6000))]);
+  }catch(e){RT.on=false;$("#net").textContent="No se pudo conectar con Firebase; las marcas se guardan solo en este teléfono.";$("#net").hidden=false}
+}
+RT.set=(id,ik,v)=>RT.f.set(RT.f.ref(RT.db,"checks/"+id+"/"+ik),v);
+RT.push=(id,e)=>RT.f.push(RT.f.ref(RT.db,"log/"+id),e);
+RT.remove=id=>{RT.f.remove(RT.f.ref(RT.db,"checks/"+id));RT.f.remove(RT.f.ref(RT.db,"log/"+id));if(RT.logs[id]){RT.logs[id]();delete RT.logs[id]}H.drop(id)};
+RT.listenLog=id=>{
+  if(RT.logs[id])return;const f=RT.f;
+  RT.logs[id]=f.onValue(f.query(f.ref(RT.db,"log/"+id),f.limitToLast(200)),snap=>{
+    const o=snap.val()||{};H.set(id,Object.keys(o).map(k=>Object.assign({_k:k},o[k])).sort((a,b)=>b.t-a.t||(a._k<b._k?1:-1)));
+    rf();if(S.hs&&S.open===id)renderHist();
+  });
+};
+RT.stopLogs=()=>{Object.values(RT.logs).forEach(u=>u());RT.logs={}};
+/* Limpieza de la rotación: un paquete que ya no está en el Sheet (y sigue ausente 10 min después) pierde sus marcas e historial */
+function cleanup(){
+  if(!RT.on||!Object.keys(DATA).length)return;
+  const cur=new Set(Object.values(DATA).flat().map(p=>p.id));if(!cur.size)return;
+  let miss={};try{miss=JSON.parse(localStorage.getItem("miss")||"{}")}catch(e){}
+  const now=Date.now();let ch=false;
+  Object.keys(miss).forEach(id=>{if(cur.has(id)||!RT.ids.has(id)){delete miss[id];ch=true}});
+  RT.ids.forEach(id=>{if(cur.has(id))return;
+    if(!miss[id]){miss[id]=now;ch=true}
+    else if(now-miss[id]>=600000){RT.remove(id);delete miss[id];ch=true}});
+  if(ch)try{localStorage.setItem("miss",JSON.stringify(miss))}catch(e){}
+}
 let rt;
 function startRefresh(){clearInterval(rt);rt=setInterval(()=>{if(!document.hidden&&PIN)loadData().catch(()=>{})},120000)}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&PIN&&!$("#app").hidden)loadData().catch(()=>{})});
 async function enter(pin,nm,auto){
   $("#err").textContent="";$("#go").disabled=true;$("#go").textContent="Entrando…";
   try{
-    PIN=pin;S.user=nm;await loadData();
+    PIN=pin;S.user=nm;await loadData();await rtInit();
     try{localStorage.setItem("who",nm);localStorage.setItem("pin",pin)}catch(e){}
     $("#login").hidden=true;$("#app").hidden=false;startRefresh();
   }catch(e){
