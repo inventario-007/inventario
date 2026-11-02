@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Verificación de Inventario</title>
+<title>Verificación de inventario</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -71,7 +71,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 #cities{display:grid;grid-template-columns:repeat(4,1fr)}
 #prodv{display:none;padding:10px 14px 40px}#app.pm #prodv{display:block}
 #app.pm .fbar,#app.pm .flt,#app.pm #list{display:none!important}
-.pf{display:flex;gap:10px;align-items:center;margin-bottom:10px}.pf select{flex:1;min-width:0;height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:15px}.pf span{color:var(--mut);font-size:13px;white-space:nowrap}
+.pf{display:flex;gap:10px;align-items:center;margin-bottom:10px}.pf select{flex:1;min-width:0;height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:15px}.pf{flex-wrap:wrap}.pf span{flex:0 0 100%;order:3;color:var(--mut);font-size:13px;margin-top:-2px}.pf button{flex:0 0 44px;width:44px;height:44px;padding:0;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;white-space:nowrap}
 #plist{overflow:clip;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 #plist table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px;font-variant-numeric:tabular-nums}
 #plist th{position:sticky;top:calc(var(--hh,112px) + env(safe-area-inset-top,0px));z-index:2;background:var(--card);box-shadow:0 1px 0 var(--line);text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--mut);padding:8px 5px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -86,7 +86,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 #plist .kx{display:none}
 @media (max-width:540px){
 #plist th:nth-child(4),#plist td:nth-child(4){display:none}
-#plist th:nth-child(2),#plist td:nth-child(2){width:23%}#plist th:nth-child(3),#plist td:nth-child(3){width:15%}#plist th:nth-child(5),#plist td:nth-child(5){width:12%}
+#plist th:nth-child(2),#plist td:nth-child(2){width:21%}#plist th:nth-child(3),#plist td:nth-child(3){width:15%}#plist th:nth-child(5),#plist td:nth-child(5){width:15%}
 #plist tr.x .kx{display:block;margin-top:3px;font-size:12px;font-weight:400;color:var(--mut)}
 }
 #plist .empty{margin:0}
@@ -147,7 +147,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 </head>
 <body>
 <section id="login">
-  <h1>Verificación de inventario</h1>
+  <h1>Verificación de imventario</h1>
   <p>Ingresa el PIN y tu nombre para ver el inventario</p>
   <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off">
   <input id="nm" type="text" placeholder="Tu nombre" autocomplete="off">
@@ -172,7 +172,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
     <div class="fg"><small>Verificación</small><div class="seg s4" id="ver"></div></div>
   </div>
   <div id="list"></div>
-  <div id="prodv"><div class="pf"><select id="pcat" aria-label="Categoría"></select><span id="pcnt"></span></div><div id="plist"></div><button class="btn" id="pmore" hidden></button></div>
+  <div id="prodv"><div class="pf"><select id="pcat" aria-label="Categoría"></select><button id="pex" type="button"></button><span id="pcnt"></span></div><div id="plist"></div><button class="btn" id="pmore" hidden></button></div>
   </main>
 <section id="det" hidden></section>
 <div id="hsh" hidden><div class="hbd" id="hbd"></div><div class="hpn" role="dialog" aria-label="Historial"></div></div>
@@ -188,7 +188,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 const cap=s=>s?s[0]+s.slice(1).toLowerCase():"";
 const hm=t=>new Date(t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});
 const money=v=>v==null?"—":"$"+v;
-const S={view:"pk",rq:{pk:"",prod:""},pq:"",pc:"",pl:60,city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
+const S={ex:false,view:"pk",rq:{pk:"",prod:""},pq:"",pc:"",pl:60,city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
 /* Capa de datos: aquí se conectará Firebase en la versión en vivo */
 const store=(()=>{let m={},local=true;try{m=JSON.parse(localStorage.getItem("chk")||"{}")}catch(e){}
   const save=()=>{if(local)try{localStorage.setItem("chk",JSON.stringify(m))}catch(e){}};
@@ -282,12 +282,13 @@ function renderProd(){setHH();
   if(!PROD){$("#plist").innerHTML='<p class="empty">Cargando productos…</p>';$("#pmore").hidden=true;return}
   const t=S.pq.split(/\s+/).filter(Boolean),f=PROD.filter(x=>(!S.pc||x.c===S.pc)&&t.every(w=>x.k.includes(w)));
   $("#pcnt").textContent=f.length+" de "+PROD.length;
-  const sh=f.slice(0,S.pl);
-  $("#plist").innerHTML=sh.length?'<table><thead><tr><th>Producto</th><th class="m">Precio</th><th class="m">Imp.</th><th>Categoría</th><th>Link</th></tr></thead><tbody>'+sh.map(x=>'<tr><td class="n">'+esc(x.n)+'<span class="kx">'+esc(catL(x.c))+'</span></td><td class="m pr">'+pm(x.p)+'</td><td class="m'+(x.i==null?" z":"")+'">'+(x.i==null?"":pm(x.i))+'</td><td class="k">'+esc(catL(x.c))+'</td><td class="l '+(x.l==="SI"?"si":"no")+'">'+(x.l==="SI"?"Sí":x.l==="NO"?"No":esc(x.l))+'</td></tr>').join("")+'</tbody></table>':'<p class="empty">No hay productos con esta búsqueda.</p>';
+  const sh=f;$("#pex").innerHTML=S.ex?IC('<path d="M7 4l5 5 5-5M7 20l5-5 5 5"/>'):IC('<path d="M7 9l5-5 5 5M7 15l5 5 5-5"/>');$("#pex").setAttribute("aria-label",S.ex?"Colapsar todo":"Expandir todo");$("#pex").title=S.ex?"Colapsar todo":"Expandir todo";
+  $("#plist").innerHTML=sh.length?'<table><thead><tr><th>Producto</th><th class="m">Precio</th><th class="m">Imp.</th><th>Categoría</th><th>Link</th></tr></thead><tbody>'+sh.map(x=>'<tr'+(S.ex?' class="x"':'')+'><td class="n">'+esc(x.n)+'<span class="kx">'+esc(catL(x.c))+'</span></td><td class="m pr">'+pm(x.p)+'</td><td class="m'+(x.i==null?" z":"")+'">'+(x.i==null?"":pm(x.i))+'</td><td class="k">'+esc(catL(x.c))+'</td><td class="l '+(x.l==="SI"?"si":"no")+'">'+(x.l==="SI"?"Sí":x.l==="NO"?"No":esc(x.l))+'</td></tr>').join("")+'</tbody></table>':'<p class="empty">No hay productos con esta búsqueda.</p>';
   const rest=f.length-sh.length;$("#pmore").hidden=rest<=0;if(rest>0)$("#pmore").textContent="Mostrar más ("+rest+" restantes)";
 }
 $("#pcat").addEventListener("change",e=>{S.pc=e.target.value;S.pl=60;renderProd()});
 $("#plist").addEventListener("click",e=>{const r=e.target.closest("tbody tr");if(r)r.classList.toggle("x")});
+$("#pex").addEventListener("click",()=>{S.ex=!S.ex;renderProd()});
 $("#pmore").addEventListener("click",()=>{S.pl+=60;renderProd()});
 function renderTop(){
   const el=S.est==="PENDIENTE"?"Pendiente":S.est==="ENTREGADO"?"Entregado":"Todos los estados",vl={T:"",N:"Sin iniciar",P:"En progreso",C:"Completos"}[S.v];
