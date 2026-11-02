@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Verificación de Inventario</title>
+<title>Verificación de paquetes</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@ h1,h2,h3,.stub b{font-family:Archivo,system-ui,sans-serif}
 input{width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-size:16px}
 .btn{background:var(--ink);color:var(--on-ink);padding:15px;border-radius:10px;font-weight:600;text-align:center;width:100%}
 #err{color:#C0392B;min-height:1.4em;margin:0}
-.chip{padding:13px 4px;text-align:center;font-size:15px;font-weight:400;color:var(--mut);border-bottom:3px solid transparent}
+.chip{padding:13px 2px;text-align:center;font-size:14px;white-space:nowrap;font-weight:400;color:var(--mut);border-bottom:3px solid transparent}
 .chip.on{font-weight:800;color:var(--ink);border-bottom-color:var(--ink)}
 #list{padding:10px 14px 40px;display:grid;gap:8px}
 .empty{color:var(--mut);text-align:center;padding:40px 10px}
@@ -68,7 +68,29 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 .sr{display:flex;gap:8px;padding:10px 14px 6px}.sf{position:relative;flex:1;min-width:0}.sf input{height:44px;padding:0 40px 0 12px}
 .qc{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;color:var(--mut)}
 .ib{flex:0 0 44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--card);display:grid;place-items:center;color:var(--ink)}
-#cities{display:grid;grid-template-columns:repeat(3,1fr)}
+#cities{display:grid;grid-template-columns:repeat(4,1fr)}
+#prodv{display:none;padding:10px 14px 40px}#app.pm #prodv{display:block}
+#app.pm .fbar,#app.pm .flt,#app.pm #list{display:none!important}
+.pf{display:flex;gap:10px;align-items:center;margin-bottom:10px}.pf select{flex:1;min-width:0;height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:15px}.pf span{color:var(--mut);font-size:13px;white-space:nowrap}
+#plist{overflow:clip;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+#plist table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px;font-variant-numeric:tabular-nums}
+#plist th{position:sticky;top:calc(var(--hh,112px) + env(safe-area-inset-top,0px));z-index:2;background:var(--card);box-shadow:0 1px 0 var(--line);text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--mut);padding:8px 5px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#plist td{padding:8px 5px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+#plist th:first-child,#plist td:first-child{padding-left:10px}#plist th:last-child,#plist td:last-child{padding-right:10px}
+#plist th:nth-child(2),#plist td:nth-child(2){width:15%}#plist th:nth-child(3),#plist td:nth-child(3){width:14%}#plist th:nth-child(4),#plist td:nth-child(4){width:22%}#plist th:nth-child(5),#plist td:nth-child(5){width:11%}
+#plist tr:last-child td{border-bottom:0}
+#plist .n{font-weight:600}
+#plist tr.x td{white-space:normal;overflow-wrap:anywhere}
+#plist .m{text-align:right}#plist th.m{text-align:right}#plist .pr{font-weight:800}
+#plist .k{color:var(--mut)}#plist .l.si{color:var(--ink);font-weight:600}#plist .l.no,#plist .z{color:var(--mut)}
+#plist .kx{display:none}
+@media (max-width:540px){
+#plist th:nth-child(4),#plist td:nth-child(4){display:none}
+#plist th:nth-child(2),#plist td:nth-child(2){width:23%}#plist th:nth-child(3),#plist td:nth-child(3){width:15%}#plist th:nth-child(5),#plist td:nth-child(5){width:12%}
+#plist tr.x .kx{display:block;margin-top:3px;font-size:12px;font-weight:400;color:var(--mut)}
+}
+#plist .empty{margin:0}
+#pmore{margin-top:12px;background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .fg small{display:block;color:var(--mut);font-size:13px;margin:0 0 4px 2px}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:var(--paper);border:1px solid var(--line);border-radius:10px}
 .seg.s4{grid-template-columns:repeat(4,1fr)}
@@ -125,8 +147,8 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 </head>
 <body>
 <section id="login">
-  <h1>Verificación de Inventario</h1>
-  <p>Ingresa el PIN y tu nombre para ver los registros</p>
+  <h1>Verificación de paquetes</h1>
+  <p>Ingresa el PIN y tu nombre para ver los paquetes.</p>
   <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off">
   <input id="nm" type="text" placeholder="Tu nombre" autocomplete="off">
   <p id="err"></p>
@@ -150,6 +172,7 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
     <div class="fg"><small>Verificación</small><div class="seg s4" id="ver"></div></div>
   </div>
   <div id="list"></div>
+  <div id="prodv"><div class="pf"><select id="pcat" aria-label="Categoría"></select><span id="pcnt"></span></div><div id="plist"></div><button class="btn" id="pmore" hidden></button></div>
   </main>
 <section id="det" hidden></section>
 <div id="hsh" hidden><div class="hbd" id="hbd"></div><div class="hpn" role="dialog" aria-label="Historial"></div></div>
@@ -165,7 +188,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 const cap=s=>s?s[0]+s.slice(1).toLowerCase():"";
 const hm=t=>new Date(t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});
 const money=v=>v==null?"—":"$"+v;
-const S={city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
+const S={view:"pk",rq:{pk:"",prod:""},pq:"",pc:"",pl:60,city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
 /* Capa de datos: aquí se conectará Firebase en la versión en vivo */
 const store=(()=>{let m={},local=true;try{m=JSON.parse(localStorage.getItem("chk")||"{}")}catch(e){}
   const save=()=>{if(local)try{localStorage.setItem("chk",JSON.stringify(m))}catch(e){}};
@@ -232,11 +255,45 @@ const cname=c=>c==="SANTA MARIA"?"Santa María":cap(c);
 const pgv=p=>p.pg==="PAGADO"?["g","✓ Pagado"]:p.pg==="PARCIAL"?["a","Parcial"]:["b","Sin pagar"];
 const tags=(p,np)=>(np?"":'<em class="t '+{g:"sg",a:"am",b:"sb"}[pgv(p)[0]]+'">'+pgv(p)[1]+'</em>')+'<em class="t '+(p.es==="ENTREGADO"?"sg":"mu")+'">'+cap(p.es)+'</em><em class="t '+(p.pa==="SI"?"bl":"mu")+'">Papeles '+(p.pa==="SI"?"sí":"no")+'</em>';
 
+/* ---------- Productos ---------- */
+let PROD=null,PT=0;
+const norm=t=>String(t==null?"":t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const catL=c=>c?cap(String(c).replace(/_/g," ")):"Sin categoría";
+const pm=n=>n==null?"—":"$"+n;
+function applyView(){
+  const pr=S.view==="prod";$("#app").classList.toggle("pm",pr);
+  $("#q").placeholder=pr?"Buscar producto":"Buscar cliente o paquete";
+  $("#q").value=S.rq[S.view]||"";$("#qc").hidden=!$("#q").value;
+  if(pr)renderProd();window.scrollTo(0,0);
+}
+async function loadProducts(force){
+  const j=await api({action:"products",pin:PIN,force:!!force});
+  PROD=(j.rows||[]).map(r=>({n:r[0],p:r[1],i:r[2],c:r[3],l:r[4],k:norm(r[0]+" "+catL(r[3]))}));
+  PT=Date.now();
+  const cnt={};PROD.forEach(x=>cnt[x.c]=(cnt[x.c]||0)+1);
+  if(S.pc&&!(S.pc in cnt))S.pc="";
+  $("#pcat").innerHTML='<option value="">Todas las categorías ('+PROD.length+')</option>'+Object.keys(cnt).sort((a,b)=>catL(a).localeCompare(catL(b),"es")).map(c=>'<option value="'+esc(c)+'"'+(c===S.pc?" selected":"")+'>'+esc(catL(c))+' ('+cnt[c]+')</option>').join("");
+  renderProd();
+}
+function pErr(e){PROD=null;$("#pcnt").textContent="";$("#pmore").hidden=true;$("#plist").innerHTML='<p class="empty">'+esc(/pesta|columna/.test(e.message)?"No se pudo leer el catálogo: "+e.message+".":e.message)+'</p>'}
+const setHH=()=>document.documentElement.style.setProperty("--hh",$("#hdr").offsetHeight+"px");
+addEventListener("resize",setHH);
+function renderProd(){setHH();
+  if(!PROD){$("#plist").innerHTML='<p class="empty">Cargando productos…</p>';$("#pmore").hidden=true;return}
+  const t=S.pq.split(/\s+/).filter(Boolean),f=PROD.filter(x=>(!S.pc||x.c===S.pc)&&t.every(w=>x.k.includes(w)));
+  $("#pcnt").textContent=f.length+" de "+PROD.length;
+  const sh=f.slice(0,S.pl);
+  $("#plist").innerHTML=sh.length?'<table><thead><tr><th>Producto</th><th class="m">Precio</th><th class="m">Imp.</th><th>Categoría</th><th>Link</th></tr></thead><tbody>'+sh.map(x=>'<tr><td class="n">'+esc(x.n)+'<span class="kx">'+esc(catL(x.c))+'</span></td><td class="m pr">'+pm(x.p)+'</td><td class="m'+(x.i==null?" z":"")+'">'+(x.i==null?"":pm(x.i))+'</td><td class="k">'+esc(catL(x.c))+'</td><td class="l '+(x.l==="SI"?"si":"no")+'">'+(x.l==="SI"?"Sí":x.l==="NO"?"No":esc(x.l))+'</td></tr>').join("")+'</tbody></table>':'<p class="empty">No hay productos con esta búsqueda.</p>';
+  const rest=f.length-sh.length;$("#pmore").hidden=rest<=0;if(rest>0)$("#pmore").textContent="Mostrar más ("+rest+" restantes)";
+}
+$("#pcat").addEventListener("change",e=>{S.pc=e.target.value;S.pl=60;renderProd()});
+$("#plist").addEventListener("click",e=>{const r=e.target.closest("tbody tr");if(r)r.classList.toggle("x")});
+$("#pmore").addEventListener("click",()=>{S.pl+=60;renderProd()});
 function renderTop(){
   const el=S.est==="PENDIENTE"?"Pendiente":S.est==="ENTREGADO"?"Entregado":"Todos los estados",vl={T:"",N:"Sin iniciar",P:"En progreso",C:"Completos"}[S.v];
   $("#fs").textContent=el+(vl?" · "+vl:"");
   $("#ver").innerHTML=[["T","Todos"],["N","Sin iniciar"],["P","En progreso"],["C","Completos"]].map(([v,l])=>'<button data-v="'+v+'" class="'+(S.v===v?"on":"")+'">'+l+'</button>').join("");
-  $("#cities").innerHTML=Object.keys(DATA).map(c=>'<button class="chip'+(c===S.city?" on":"")+'" data-c="'+c+'">'+(c==="SANTA MARIA"?"Santa María":cap(c))+'</button>').join("");
+  $("#cities").innerHTML=Object.keys(DATA).map(c=>'<button class="chip'+(c===S.city&&S.view!=="prod"?" on":"")+'" data-c="'+c+'">'+(c==="SANTA MARIA"?"Santa María":cap(c))+'</button>').join("")+'<button class="chip'+(S.view==="prod"?" on":"")+'" data-view="prod">Productos</button>';
   $("#est").innerHTML=[["PENDIENTE","Pendiente"],["ENTREGADO","Entregado"],["TODOS","Todos"]].map(([v,l])=>'<button data-e="'+v+'" class="'+(S.est===v?"on":"")+'">'+l+'</button>').join("");
 }
 function card(p){
@@ -323,10 +380,11 @@ function markAll(sec){
   rf();
 }
 $("#app").addEventListener("click",e=>{const c=e.target.closest("[data-c]"),s=e.target.closest("[data-e]"),v=e.target.closest("[data-v]");
-  if(c)S.city=c.dataset.c;if(s)S.est=s.dataset.e;if(v)S.v=v.dataset.v;if(c||s||v){renderTop();renderList()}});
-$("#q").addEventListener("input",e=>{S.q=e.target.value.trim().toLowerCase();$("#qc").hidden=!e.target.value;renderList()});
+  const w=e.target.closest("[data-view]");if(w){S.view="prod";applyView();renderTop();if(!PROD||Date.now()-PT>60000)loadProducts().catch(pErr);return}
+  if(c){S.city=c.dataset.c;if(S.view==="prod"){S.view="pk";applyView()}}if(s)S.est=s.dataset.e;if(v)S.v=v.dataset.v;if(c||s||v){renderTop();renderList()}});
+$("#q").addEventListener("input",e=>{const v=e.target.value;S.rq[S.view]=v;$("#qc").hidden=!v;if(S.view==="prod"){S.pq=norm(v.trim());S.pl=60;renderProd()}else{S.q=v.trim().toLowerCase();renderList()}});
 $("#ft").addEventListener("click",()=>{const o=$("#fp").hidden;$("#fp").hidden=!o;$("#ft").setAttribute("aria-expanded",String(o))});
-$("#qc").addEventListener("click",()=>{$("#q").value="";S.q="";$("#qc").hidden=true;renderList();$("#q").focus()});
+$("#qc").addEventListener("click",()=>{$("#q").value="";S.rq[S.view]="";S.q="";S.pq="";S.pl=60;$("#qc").hidden=true;if(S.view==="prod")renderProd();else renderList();$("#q").focus()});
 $("#list").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openDet(c.dataset.id)});
 $("#det").addEventListener("click",e=>{
   const hh=e.target.closest("#hh");if(hh)return openHist();
@@ -354,7 +412,7 @@ $("#det").addEventListener("touchcancel",()=>{if(dg){dg=false;kids().forEach(k=>
 }
 $("#th").addEventListener("click",()=>{PAL.m=dark()?"l":"d";applyPal()});
 $("#out").addEventListener("click",()=>{
-  S.open=null;S.user="";S.q="";$("#q").value="";$("#qc").hidden=true;$("#det").hidden=true;document.body.classList.remove("lock");
+  S.open=null;S.user="";S.q="";S.view="pk";S.rq={pk:"",prod:""};S.pq="";S.pc="";S.pl=60;PROD=null;applyView();$("#q").value="";$("#qc").hidden=true;$("#det").hidden=true;document.body.classList.remove("lock");
   closeHist();if(RT.on)RT.stopLogs();PIN="";DATA={};clearInterval(rt);try{localStorage.removeItem("pin")}catch(e){}
   $("#app").hidden=true;$("#login").hidden=false;$("#pin").value="";$("#err").textContent="";window.scrollTo(0,0);
 });
@@ -365,7 +423,7 @@ $("#hsh").addEventListener("click",e=>{const t=e.target.closest("[data-ht]");if(
   const top=()=>inDet()?$("#det").scrollTop<=0:window.scrollY<=0;
   const ready=()=>!$("#app").hidden&&$("#hsh").hidden&&$("#lb").hidden&&top()&&!!PIN&&!wait;
   const close=()=>{ptr.classList.remove("drag");ptr.style.height="0px";setTimeout(()=>{if(!wait){ptr.textContent="";if(ptr.id==="dptr")ptr.hidden=true}},220)};
-  document.addEventListener("touchstart",e=>{on=false;pull=0;if(!ready()||e.touches.length!==1||e.target.closest("input"))return;py=e.touches[0].clientY;on=true;ptr=inDet()?$("#dptr"):$("#ptr");ptr.hidden=false},{passive:true});
+  document.addEventListener("touchstart",e=>{on=false;pull=0;if(!ready()||e.touches.length!==1||e.target.closest("input,select"))return;py=e.touches[0].clientY;on=true;ptr=inDet()?$("#dptr"):$("#ptr");ptr.hidden=false},{passive:true});
   document.addEventListener("touchmove",e=>{
     if(!on)return;const dy=e.touches[0].clientY-py;
     if(dy<=0||!top()){if(pull){pull=0;close()}return}
@@ -380,7 +438,7 @@ $("#hsh").addEventListener("click",e=>{const t=e.target.closest("[data-ht]");if(
     if(pull<TH){pull=0;close();return}
     pull=0;wait=true;ptr.classList.remove("drag");ptr.style.height="44px";ptr.innerHTML='<span class="sp"></span>Actualizando…';
     let msg="Actualizado ✓";
-    try{await loadData(true)}catch(e){msg="No se pudo actualizar"}
+    try{if(S.view==="prod")await loadProducts(true);else await loadData(true)}catch(e){msg="No se pudo actualizar"}
     ptr.textContent=msg;setTimeout(()=>{wait=false;close()},900);
   });
 }
