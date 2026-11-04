@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Verificación de inventario</title>
+<title>Verificación de paquetes</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -143,12 +143,29 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 @media (prefers-reduced-motion:reduce){.hpn{animation:none!important}}
 #lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:12px}
 #lb img{max-width:100%;max-height:100%;border-radius:8px}
+
+.pill.pb{border:0;cursor:pointer;gap:3px;font-family:inherit}.pill.pb svg{width:12px;height:12px}
+.obx{margin:8px 14px 0}.eb2{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600}.eb2 svg{width:14px;height:14px}
+.obs.eo{padding:10px}.obs.eo .eh{font-size:14px;margin-bottom:6px}
+.obs.eo textarea{display:block;width:100%;min-height:120px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:16px;line-height:1.35;resize:vertical}
+.oerr{color:#C0392B;margin:6px 0 0;font-size:14px;min-height:1em}
+.oe{display:flex;gap:8px;margin-top:8px}.eb{flex:1;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:15px;font-weight:600}.eb.pri{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}.eb[disabled]{opacity:.55}
+#det.edm .it,#det.edm .sa,#det.edm #all{opacity:.45}
+#psh{position:fixed;inset:0;z-index:36}
+.po{display:flex;align-items:center;gap:10px;width:100%;padding:15px 4px;border-bottom:1px solid var(--line);font-size:16px;text-align:left;color:var(--ink)}.po:last-child{border-bottom:0}.po.on{font-weight:700}.po em{margin-left:auto;font-style:normal;font-size:12px;font-weight:600;color:var(--mut)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}.dot.g{background:var(--gtx)}.dot.a{background:var(--atx)}.dot.b{background:var(--btx)}
+#cfm{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px}.cbd{position:absolute;inset:0;background:rgba(0,0,0,.5)}
+.cdl{position:relative;width:100%;max-width:380px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px}
+.cd-pk{font-size:14px;color:var(--mut);margin:2px 0 14px}.cd-pk b{color:var(--ink)}
+.cd-ch{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin-bottom:14px}.cd-ch>div{display:flex;flex-direction:column;align-items:center;gap:5px}.cd-ch small{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+.cd-ch .pill{font-size:15px;padding:5px 14px}.cd-ar{font-size:20px;color:var(--mut);padding-bottom:3px}.cd-nt{font-size:13px;color:var(--mut);text-align:center}
+.cdl .ct{font:800 17px Archivo,sans-serif;margin:0 0 6px}.cdl p{margin:0;font-size:15px;line-height:1.4}
 </style>
 </head>
 <body>
 <section id="login">
-  <h1>Verificación de imventario</h1>
-  <p>Ingresa el PIN y tu nombre para ver el inventario</p>
+  <h1>Verificación de paquetes</h1>
+  <p>Ingresa el PIN y tu nombre para ver los paquetes.</p>
   <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off">
   <input id="nm" type="text" placeholder="Tu nombre" autocomplete="off">
   <p id="err"></p>
@@ -176,6 +193,8 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
   </main>
 <section id="det" hidden></section>
 <div id="hsh" hidden><div class="hbd" id="hbd"></div><div class="hpn" role="dialog" aria-label="Historial"></div></div>
+<div id="psh" hidden><div class="hbd" id="pbd"></div><div class="hpn" role="dialog" aria-label="Estado de pago"></div></div>
+<div id="cfm" hidden><div class="cbd" id="cbd"></div><div class="cdl" role="alertdialog" aria-modal="true"><div class="ct" id="ct"></div><p id="cm"></p><p class="oerr" id="ce" role="alert"></p><div class="oe"><button class="eb" id="cn" type="button"></button><button class="eb pri" id="co" type="button"></button></div></div></div>
 <div id="lb" hidden><img alt=""></div>
 <script>
 const API="https://script.google.com/macros/s/AKfycbwheTUxdUu3CW5TRQ4nuNJ6sOQYVD1f3RB9dlRLAZIGuWk1XXQ9gonApMe1XkDNr9g0/exec";
@@ -188,7 +207,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 const cap=s=>s?s[0]+s.slice(1).toLowerCase():"";
 const hm=t=>new Date(t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});
 const money=v=>v==null?"—":"$"+v;
-const S={ex:false,view:"pk",rq:{pk:"",prod:""},pq:"",pc:"",pl:60,city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
+const S={ed:null,ex:false,view:"pk",rq:{pk:"",prod:""},pq:"",pc:"",pl:60,city:"SALINAS",est:"PENDIENTE",v:"T",q:"",user:"",open:null,obO:new Set(),hs:false};
 /* Capa de datos: aquí se conectará Firebase en la versión en vivo */
 const store=(()=>{let m={},local=true;try{m=JSON.parse(localStorage.getItem("chk")||"{}")}catch(e){}
   const save=()=>{if(local)try{localStorage.setItem("chk",JSON.stringify(m))}catch(e){}};
@@ -319,9 +338,9 @@ function section(p,s,label,a){
 const fmt=t=>{const d=new Date(t),h=d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});return d.toDateString()===new Date().toDateString()?h:d.toLocaleDateString("es",{day:"2-digit",month:"2-digit"})+" "+h};
 function renderHist(){
   const p=cur();if(!p)return;const a=H.get(p.id),T=S.ht||"m";
-  const tabs='<div class="htb" role="tablist"><button role="tab" data-ht="m" aria-selected="'+(T==="m")+'">Marcas</button><button role="tab" data-ht="p" aria-selected="'+(T==="p")+'">Paquete</button></div>';
+  const tabs='<div class="htb" role="tablist"><button role="tab" data-ht="m" aria-selected="'+(T==="m")+'">Historial</button><button role="tab" data-ht="p" aria-selected="'+(T==="p")+'">Paquete</button></div>';
   let body;
-  if(T==="m")body=a.length?'<ul class="hl">'+a.map(e=>'<li><div class="e1"><span><b>'+esc(e.u||"—")+'</b> <i class="'+(e.a==="marcó"?"em":"ed")+'">'+e.a+'</i></span><time>'+fmt(e.t)+'</time></div><div class="e2">'+esc(e.x)+(e.n?" ("+e.n+(e.n===1?" item)":" items)"):"")+'</div></li>').join("")+'</ul>':'<p class="empty">Aún no hay marcas en este paquete.</p>';
+  if(T==="m")body=a.length?'<ul class="hl">'+a.map(e=>'<li><div class="e1"><span><b>'+esc(e.u||"—")+'</b> <i class="'+(e.a==="marcó"?"em":"ed")+'">'+e.a+'</i></span><time>'+fmt(e.t)+'</time></div><div class="e2">'+esc(e.x)+(e.n?" ("+e.n+(e.n===1?" item)":" items)"):"")+'</div></li>').join("")+'</ul>':'<p class="empty">Aún no hay movimientos en este paquete.</p>';
   else{
     const up=(p.up||[]).map(l=>{const m=l.match(/^(.*?)\s+a las\s+(.+)$/i);return m?{u:m[1],t:m[2]}:{u:l,t:""}});
     body='<div class="pk"><small>Creado por</small><b>'+esc(p.by||"—")+'</b></div><h4 class="pkh">Actualizaciones</h4>'+(up.length?'<ul class="hl">'+up.map(e=>'<li><div class="e1"><span><b>'+esc(e.u)+'</b></span><time>'+esc(e.t)+'</time></div></li>').join("")+'</ul>':'<p class="empty">Sin actualizaciones registradas.</p>');
@@ -334,24 +353,25 @@ function renderDetail(){
   const p=cur();if(!p)return;const O=S.order,ix=O.indexOf(S.open);
   const g=prog(p),ok=g.n&&g.d===g.n;
   const pv=pgv(p),oo=S.obO.has(p.id),op=(p.ob||"").split("\n").find(l=>l.trim())||"";
-  $("#det").innerHTML='<div class="dh"><button id="back">'+I.l+'Volver</button><h2>'+cname(S.city)+' - '+p.n+'</h2><span class="pill '+pv[0]+'">'+pv[1]+'</span></div>'
+  $("#det").innerHTML='<div class="dh"><button id="back">'+I.l+'Volver</button><h2>'+cname(S.city)+' - '+p.n+'</h2><button class="pill pb '+pv[0]+'" id="pg" type="button" aria-haspopup="dialog" aria-label="Cambiar estado de pago: '+pv[1]+'">'+pv[1]+I.dn+'</button></div>'
    +(p.ph.length?'<div class="ph">'+p.ph.map(n=>'<img data-k="'+esc(pk(S.city,n))+'" src="'+photo(S.city,n)+'" alt="Foto del paquete '+p.n+'">').join("")+'</div>':"")
    +'<div class="hd"><div class="r"><div class="nm">'+esc(p.r)+'</div><span class="dt">'+esc(p.f||"—")+'</span></div><div class="r"><a class="call" href="tel:'+esc(String(p.t).replace(/[^\d+]/g,""))+'" target="_top">'+PH+esc(p.t)+'</a><div class="tags">'+tags(p,1)+'</div></div></div>'
    +(g.n?'<div class="pg'+(ok?" ok":"")+'"><div class="pt"><span>Verificados</span><b>'+(ok?"✓ Completo":g.d+" de "+g.n)+'</b></div><div class="bar"><i style="width:'+Math.round(g.d/g.n*100)+'%"></i></div></div>':"")
    +'<div class="money"><div><small>Contenido</small><b>'+money(p.pc)+'</b></div><div><small>Medicina</small><b>'+money(p.pm)+'</b></div><div><small>Total</small><b>'+money(p.tot)+'</b></div></div>'
-   +(p.ob?'<div class="obs"><button class="oh" id="oh" aria-expanded="'+oo+'"><b>Observaciones</b>'+(oo?"":'<span class="op">'+esc(op)+'</span>')+'<span class="vm">'+(oo?"Ver menos":"Ver más")+'<span class="chev">'+I.dn+'</span></span></button>'+(oo?'<div class="ob">'+esc(p.ob)+'</div>':"")+'</div>':"")
+   +(edMode(p)?edHtml():(p.ob?'<div class="obs"><button class="oh" id="oh" aria-expanded="'+oo+'"><b>Observaciones</b>'+(oo?"":'<span class="op">'+esc(op)+'</span>')+'<span class="vm">'+(oo?"Ver menos":"Ver más")+'<span class="chev">'+I.dn+'</span></span></button>'+(oo?'<div class="ob">'+esc(p.ob)+'</div>':"")+'</div>':""))+edBtn(p)
    +section(p,"c","Contenido",p.c)+section(p,"m","Medicina",p.m)
    +(g.n?"":'<p class="empty">Este paquete no tiene items registrados.</p>')
-   +'<div class="foot"><button class="hb" id="hh" aria-label="Historial">'+I.h+'</button><div class="nav"><button id="pv" aria-label="Paquete anterior"'+(ix<1?" disabled":"")+'>'+I.l+'</button><span>'+(ix+1)+' de '+O.length+'</span><button id="nx" aria-label="Paquete siguiente"'+(ix>=O.length-1?" disabled":"")+'>'+I.r+'</button></div><button class="btn'+(ok?" done":"")+'" id="all"'+(g.n?"":" disabled")+'>'+(ok?"Desmarcar todo":"Marcar todo")+'</button></div>';
+   +'<div class="foot"><button class="hb" id="hh" aria-label="Historial">'+I.h+'</button><div class="nav"><button id="pv" aria-label="Paquete anterior"'+(ix<1||S.ed?" disabled":"")+'>'+I.l+'</button><span>'+(ix+1)+' de '+O.length+'</span><button id="nx" aria-label="Paquete siguiente"'+(ix>=O.length-1||S.ed?" disabled":"")+'>'+I.r+'</button></div><button class="btn'+(ok?" done":"")+'" id="all"'+(g.n?"":" disabled")+'>'+(ok?"Desmarcar todo":"Marcar todo")+'</button></div>';
   if(ok)$("#all").classList.add("done");
+  $("#det").classList.toggle("edm",!!S.ed);
   loadPhotos(p);if(RT.on)RT.listenLog(p.id);
 }
-function refresh(){const d=$("#det"),y=d.scrollTop;renderDetail();d.scrollTop=y;renderList();if(S.hs)renderHist()}
+function refresh(){if(S.ed){renderList();if(S.hs)renderHist();return}const d=$("#det"),y=d.scrollTop;renderDetail();d.scrollTop=y;renderList();if(S.hs)renderHist()}
 function openDet(id){S.open=id;S.order=vis().map(x=>x.id);$("#det").hidden=false;document.body.classList.add("lock");renderDetail();$("#det").scrollTop=0}
 const kids=()=>[...$("#det").children].filter(k=>!k.classList.contains("foot")&&k.id!=="gh");
 let busyGo=false;
 function go(d,fx){
-  const O=S.order,i=O.indexOf(S.open)+d;if(i<0||i>=O.length||busyGo)return;
+  const O=S.order,i=O.indexOf(S.open)+d;if(i<0||i>=O.length||busyGo||S.ed)return;
   const e=$("#det"),W=window.innerWidth,fromX=fx||0,y=e.scrollTop,foot=e.querySelector(".foot");
   const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
   let gh=null;
@@ -370,12 +390,12 @@ function go(d,fx){
   out.onfinish=()=>{gh.remove();busyGo=false};
   setTimeout(()=>{gh.remove();busyGo=false},500);
 }
-function closeDet(){closeHist();S.open=null;$("#det").hidden=true;document.body.classList.remove("lock");renderList()}
+function closeDet(){S.ed=null;closePsh();closeHist();$("#det").classList.remove("edm");S.open=null;$("#det").hidden=true;document.body.classList.remove("lock");renderList()}
 function setMark(p,x,on){if(RT.on)RT.set(p.id,x.ik,{on,u:S.user,t:Date.now()});else store.set(x.k,on?{u:S.user,t:Date.now()}:null)}
 function logEv(id,a,x,n){const e={u:S.user,t:Date.now(),a,x};if(n)e.n=n;if(RT.on)RT.push(id,e);else H.add(id,a,x,n)}
-function toggle(k){const p=cur(),x=items(p).find(i=>i.k===k);if(!x)return;const on=!store.get(k);setMark(p,x,on);logEv(p.id,on?"marcó":"desmarcó",x.t);rf()}
+function toggle(k){if(S.ed)return;const p=cur(),x=items(p).find(i=>i.k===k);if(!x)return;const on=!store.get(k);setMark(p,x,on);logEv(p.id,on?"marcó":"desmarcó",x.t);rf()}
 function markAll(sec){
-  const p=cur(),it=items(p).filter(x=>!sec||x.s===sec),all=it.every(x=>store.get(x.k)),ch=it.filter(x=>all?store.get(x.k):!store.get(x.k));
+  if(S.ed)return;const p=cur(),it=items(p).filter(x=>!sec||x.s===sec),all=it.every(x=>store.get(x.k)),ch=it.filter(x=>all?store.get(x.k):!store.get(x.k));
   ch.forEach(x=>setMark(p,x,!all));
   if(ch.length)logEv(p.id,all?"desmarcó":"marcó",!sec?"todo el paquete":sec==="c"?"todo el contenido":"toda la medicina",ch.length);
   rf();
@@ -387,20 +407,78 @@ $("#q").addEventListener("input",e=>{const v=e.target.value;S.rq[S.view]=v;$("#q
 $("#ft").addEventListener("click",()=>{const o=$("#fp").hidden;$("#fp").hidden=!o;$("#ft").setAttribute("aria-expanded",String(o))});
 $("#qc").addEventListener("click",()=>{$("#q").value="";S.rq[S.view]="";S.q="";S.pq="";S.pl=60;$("#qc").hidden=true;if(S.view==="prod")renderProd();else renderList();$("#q").focus()});
 $("#list").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openDet(c.dataset.id)});
+/* ---------- Edición: observaciones y estado de pago ---------- */
+const PEN=IC('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>');
+const PGO=[["PENDIENTE","Sin pagar","b"],["PARCIAL","Parcial","a"],["PAGADO","Pagado","g"]];
+const pgk=p=>p.pg==="PAGADO"?"PAGADO":p.pg==="PARCIAL"?"PARCIAL":"PENDIENTE";
+const pgl=k=>PGO.find(o=>o[0]===k)[1];
+let CF=null;
+function ask(o){CF=o;$("#ct").textContent=o.title;if(o.html)$("#cm").innerHTML=o.html;else $("#cm").textContent=o.msg;$("#ce").textContent="";$("#cn").textContent=o.cancel||"Cancelar";$("#co").textContent=o.ok;$("#co").disabled=false;$("#cn").disabled=false;$("#cfm").hidden=false;$("#co").focus()}
+const askClose=()=>{$("#cfm").hidden=true;CF=null};
+function askCancel(){if(!CF||CF.busy)return;const f=CF.onCancel;askClose();if(f)f()}
+$("#cn").addEventListener("click",askCancel);$("#cbd").addEventListener("click",askCancel);
+$("#co").addEventListener("click",async()=>{
+  if(!CF||CF.busy)return;const o=CF;o.busy=true;$("#co").disabled=true;$("#cn").disabled=true;$("#co").textContent="Guardando…";$("#ce").textContent="";
+  try{await o.run();askClose()}
+  catch(e){o.busy=false;$("#co").disabled=false;$("#cn").disabled=false;$("#co").textContent=o.ok;$("#ce").textContent=e.message;if(/Alguien/.test(e.message))loadData(true).catch(()=>{})}
+});
+const edMode=p=>!!(S.ed&&S.ed.id===p.id);
+const edHtml=()=>'<div class="obs eo"><div class="eh"><b>Observaciones</b></div><textarea id="obt" maxlength="3000" aria-label="Observaciones">'+esc(S.ed.txt)+'</textarea><p class="oerr" id="obe" role="alert"></p><div class="oe"><button class="eb" id="obc" type="button">Cancelar</button><button class="eb pri" id="osv" type="button">Guardar</button></div></div>';
+const edBtn=p=>edMode(p)?"":'<div class="obx"><button class="eb2" id="obx" type="button">'+PEN+(p.ob?"Editar observaciones":"Agregar observaciones")+'</button></div>';
+const edDirty=()=>!!S.ed&&S.ed.txt.trim()!==S.ed.old.trim();
+function startEd(){const p=cur();if(!p||S.ed)return;S.ed={id:p.id,txt:p.ob||"",old:p.ob||""};renderDetail();const t=$("#obt");if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length)}}
+function cancelEd(){S.ed=null;renderDetail()}
+function askDiscard(then){ask({title:"¿Descartar los cambios?",msg:"Las observaciones que escribiste todavía no se han guardado.",ok:"Descartar",cancel:"Seguir editando",run:async()=>{then()}})}
+function leaveDet(){if(S.ed){if(S.ed.busy)return;if(edDirty())return askDiscard(closeDet)}closeDet()}
+async function saveObs(){
+  const p=cur();if(!p||!S.ed||S.ed.busy)return;
+  const t=S.ed.txt.trim();if(t===S.ed.old.trim())return cancelEd();
+  S.ed.busy=true;$("#osv").disabled=true;$("#obc").disabled=true;$("#osv").textContent="Guardando…";$("#obe").textContent="";
+  try{
+    const j=await api({action:"save",pin:PIN,city:S.city,id:p.id,field:"obs",value:t,old:S.ed.old,user:S.user});
+    p.ob=j.value;if(j.up)p.up=j.up;logEv(p.id,"editó","Observaciones");
+    S.ed=null;if(S.open===p.id)renderDetail();renderList();
+  }catch(e){
+    if(S.ed)S.ed.busy=false;
+    if($("#osv")){$("#osv").disabled=false;$("#obc").disabled=false;$("#osv").textContent="Guardar";$("#obe").textContent=e.message}
+    if(/Alguien/.test(e.message))loadData(true).catch(()=>{});
+  }
+}
+function openPsh(){const p=cur();if(!p||S.ed)return;renderPsh();$("#psh").hidden=false}
+function closePsh(){$("#psh").hidden=true}
+function renderPsh(){const p=cur();if(!p)return;const c=pgk(p);
+  $("#psh .hpn").innerHTML='<div class="hph"><b>Estado de pago · '+cname(S.city)+' - '+p.n+'</b><button class="ib" id="px" aria-label="Cerrar">'+I.x+'</button></div><div class="hpb">'+PGO.map(o=>'<button class="po'+(o[0]===c?" on":"")+'" data-p="'+o[0]+'"><i class="dot '+o[2]+'"></i><span>'+o[1]+'</span>'+(o[0]===c?'<em>Actual</em>':"")+'</button>').join("")+'</div>'}
+$("#psh").addEventListener("click",e=>{
+  if(e.target.id==="pbd"||e.target.closest("#px"))return closePsh();
+  const b=e.target.closest(".po");if(!b)return;
+  const p=cur(),k=b.dataset.p;closePsh();if(!p||k===pgk(p))return;
+  const from=pgl(pgk(p)),to=pgl(k);
+  ask({title:"Cambiar estado de pago",html:'<div class="cd-pk">'+esc(cname(S.city))+' - '+p.n+' · <b>'+esc(p.r)+'</b></div><div class="cd-ch"><div><small>Actual</small><span class="pill '+PGO.find(o=>o[0]===pgk(p))[2]+'">'+from+'</span></div><span class="cd-ar" aria-hidden="true">→</span><div><small>Nuevo</small><span class="pill '+PGO.find(o=>o[0]===k)[2]+'">'+to+'</span></div></div><div class="cd-nt">Se guardará en el Sheet y en el historial.</div>',ok:"Confirmar",
+    run:async()=>{
+      const j=await api({action:"save",pin:PIN,city:S.city,id:p.id,field:"pago",value:k,old:p.pg||"",user:S.user});
+      p.pg=j.value;if(j.up)p.up=j.up;logEv(p.id,"cambió","Pago: "+from+" → "+to);
+      if(S.open===p.id)renderDetail();renderList();
+    }});
+});
+$("#det").addEventListener("input",e=>{if(e.target.id==="obt"&&S.ed)S.ed.txt=e.target.value});
 $("#det").addEventListener("click",e=>{
+  if(e.target.closest("#pg"))return openPsh();
+  if(e.target.closest("#obx"))return startEd();
+  if(e.target.closest("#osv"))return saveObs();
+  if(e.target.closest("#obc")){if(S.ed&&S.ed.busy)return;return edDirty()?askDiscard(cancelEd):cancelEd()}
   const hh=e.target.closest("#hh");if(hh)return openHist();
   const oh=e.target.closest("#oh");if(oh){S.obO.has(S.open)?S.obO.delete(S.open):S.obO.add(S.open);return refresh()}
   const it=e.target.closest(".it");if(it)return toggle(it.dataset.k);
   const sa=e.target.closest(".sa");if(sa)return markAll(sa.dataset.s);
   if(e.target.closest("#all"))return markAll();
   if(e.target.closest("#pv"))return go(-1);if(e.target.closest("#nx"))return go(1);
-  if(e.target.closest("#back"))return closeDet();
+  if(e.target.closest("#back"))return leaveDet();
   const im=e.target.closest(".ph img");if(im){$("#lb img").src=im.src;$("#lb").hidden=false}
 });
 let sx=0,sy=0,sk=true;
 {let dg=false,dxx=0;
 const edge=d=>{const O=S.order,i=O.indexOf(S.open)+d;return i<0||i>=O.length};
-$("#det").addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;sk=!!e.target.closest(".ph,.foot")||busyGo||e.touches.length>1;dg=false;dxx=0},{passive:true});
+$("#det").addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;sk=!!e.target.closest(".ph,.foot")||busyGo||!!S.ed||e.touches.length>1;dg=false;dxx=0},{passive:true});
 $("#det").addEventListener("touchmove",e=>{if(sk)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
   if(!dg){if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.5)dg=true;else return}
   dxx=edge(dx<0?1:-1)?dx*.25:dx;kids().forEach(k=>{k.style.transition="none";k.style.transform="translateX("+dxx+"px)"})},{passive:true});
@@ -413,7 +491,7 @@ $("#det").addEventListener("touchcancel",()=>{if(dg){dg=false;kids().forEach(k=>
 }
 $("#th").addEventListener("click",()=>{PAL.m=dark()?"l":"d";applyPal()});
 $("#out").addEventListener("click",()=>{
-  S.open=null;S.user="";S.q="";S.view="pk";S.rq={pk:"",prod:""};S.pq="";S.pc="";S.pl=60;PROD=null;applyView();$("#q").value="";$("#qc").hidden=true;$("#det").hidden=true;document.body.classList.remove("lock");
+  S.ed=null;closePsh();$("#cfm").hidden=true;S.open=null;S.user="";S.q="";S.view="pk";S.rq={pk:"",prod:""};S.pq="";S.pc="";S.pl=60;PROD=null;applyView();$("#q").value="";$("#qc").hidden=true;$("#det").hidden=true;document.body.classList.remove("lock");
   closeHist();if(RT.on)RT.stopLogs();PIN="";DATA={};clearInterval(rt);try{localStorage.removeItem("pin")}catch(e){}
   $("#app").hidden=true;$("#login").hidden=false;$("#pin").value="";$("#err").textContent="";window.scrollTo(0,0);
 });
@@ -422,9 +500,9 @@ $("#hsh").addEventListener("click",e=>{const t=e.target.closest("[data-ht]");if(
 {const TH=110;let ptr=$("#ptr"),py=0,pull=0,on=false,wait=false;
   const inDet=()=>!$("#det").hidden;
   const top=()=>inDet()?$("#det").scrollTop<=0:window.scrollY<=0;
-  const ready=()=>!$("#app").hidden&&$("#hsh").hidden&&$("#lb").hidden&&top()&&!!PIN&&!wait;
+  const ready=()=>!$("#app").hidden&&$("#hsh").hidden&&$("#psh").hidden&&$("#cfm").hidden&&!S.ed&&$("#lb").hidden&&top()&&!!PIN&&!wait;
   const close=()=>{ptr.classList.remove("drag");ptr.style.height="0px";setTimeout(()=>{if(!wait){ptr.textContent="";if(ptr.id==="dptr")ptr.hidden=true}},220)};
-  document.addEventListener("touchstart",e=>{on=false;pull=0;if(!ready()||e.touches.length!==1||e.target.closest("input,select"))return;py=e.touches[0].clientY;on=true;ptr=inDet()?$("#dptr"):$("#ptr");ptr.hidden=false},{passive:true});
+  document.addEventListener("touchstart",e=>{on=false;pull=0;if(!ready()||e.touches.length!==1||e.target.closest("input,select,textarea"))return;py=e.touches[0].clientY;on=true;ptr=inDet()?$("#dptr"):$("#ptr");ptr.hidden=false},{passive:true});
   document.addEventListener("touchmove",e=>{
     if(!on)return;const dy=e.touches[0].clientY-py;
     if(dy<=0||!top()){if(pull){pull=0;close()}return}
