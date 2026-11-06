@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@600;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--paper:#F2F3F4;--card:#fff;--ink:#1E2226;--mut:#6A7078;--line:#DCDFE2;--on-ink:#fff;--ok:#1F8A5B;--okbg:#E3F3EB;--bad:#C2410C;--tape:#F2B01E;--tapebg:#FFF1CC;--amtx:#7A4F00;--badbg:#FBE5D9;--gbg:#E3F3EB;--gtx:#1F8A5B;--bbg:#FBE5D9;--btx:#C2410C;--abg:#FFF1CC;--atx:#7A4F00;--obbg:#FBF7EA;--obbd:#E8D49A;--tkbg:#FFF1E0;--tkbd:#F28C28;--bl:#1D5FB8;--blbg:#E1ECFA;--onst:#fff;color-scheme:light}
-:root[data-m="d"]{--paper:#121416;--card:#1B1E21;--ink:#E6E8EA;--mut:#9AA0A6;--line:#2B2F33;--on-ink:#121416;--ok:#3DBB84;--okbg:#15332A;--bad:#F08A4B;--tapebg:#3A2F10;--amtx:#F2B01E;--badbg:#3B2316;--gbg:#1D3A2E;--gtx:#8FD5B0;--bbg:#3D2527;--btx:#F0A9A5;--abg:#3A3220;--atx:#E2C275;--obbg:#1E1C18;--obbd:#6B5A2A;--tkbg:#2A1F14;--tkbd:#D9822B;--bl:#7DB2F5;--blbg:#17283F;--onst:#0F1724;color-scheme:dark}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--paper:#F2F3F4;--card:#fff;--ink:#1E2226;--mut:#6A7078;--line:#DCDFE2;--on-ink:#fff;--ok:#1F8A5B;--okbg:#E3F3EB;--bad:#C2410C;--tape:#F2B01E;--tapebg:#FFF1CC;--amtx:#7A4F00;--badbg:#FBE5D9;--gbg:#E3F3EB;--gtx:#1F8A5B;--bbg:#FBE5D9;--btx:#C2410C;--abg:#FFF1CC;--atx:#7A4F00;--obbg:#E7E9EB;--obbd:#A3A9AF;--tkbg:#FFF1E0;--tkbd:#F28C28;--bl:#1D5FB8;--blbg:#E1ECFA;--onst:#fff;color-scheme:light}
+:root[data-m="d"]{--paper:#121416;--card:#1B1E21;--ink:#E6E8EA;--mut:#9AA0A6;--line:#2B2F33;--on-ink:#121416;--ok:#3DBB84;--okbg:#15332A;--bad:#F08A4B;--tapebg:#3A2F10;--amtx:#F2B01E;--badbg:#3B2316;--gbg:#1D3A2E;--gtx:#8FD5B0;--bbg:#3D2527;--btx:#F0A9A5;--abg:#3A3220;--atx:#E2C275;--obbg:#272B2F;--obbd:#5D646B;--tkbg:#2A1F14;--tkbd:#D9822B;--bl:#7DB2F5;--blbg:#17283F;--onst:#0F1724;color-scheme:dark}
 html,body{overscroll-behavior-y:contain}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -165,8 +165,8 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 #prt .pst{flex:1;overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
 #prt .pst img{width:100%;max-width:420px;align-self:center;border:1px solid var(--line);border-radius:8px;background:#fff}
 #prt .pst p{margin:0;text-align:center;color:var(--mut);font-size:14px}#prt .pst h3{margin:0;text-align:center;font-size:18px}
-.obe{padding:0 10px 8px;text-align:right}.ebx{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:0;border-radius:7px;background:var(--obbd);color:var(--ink);font:inherit;font-size:13px;font-weight:600}.ebx svg{width:12px;height:12px}
-.obs.tk{background:var(--tkbg);border-left-color:var(--tkbd)}.obs.tk .ebx{background:var(--tkbd);color:#1E2226}
+.obe{padding:0 10px 8px;text-align:right}.ebx{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:0;border-radius:7px;background:var(--card);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:13px;font-weight:600}.ebx svg{width:12px;height:12px}
+.obs.tk{background:var(--tkbg);border-left-color:var(--tkbd)}.obs.tk .ebx{background:var(--tkbd);border-color:var(--tkbd);color:#1E2226}
 #tkx{background:var(--tkbd);border-color:var(--tkbd);color:#1E2226}.obs.eo.tk{border-left-color:var(--tkbd)}.obs.eo.tk textarea{border-color:var(--tkbd)}.obs.eo.tk .eb.pri{background:var(--tkbd);border-color:var(--tkbd);color:#1E2226}
 .cl{display:flex;align-items:center;gap:8px;min-width:0}.pib{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;border:1.5px solid var(--ink);border-radius:50%;background:transparent;color:var(--ink);padding:0}.pib svg{width:17px;height:17px}
 .obx{display:flex;flex-wrap:wrap;gap:8px}.obs.eo .eh{display:flex;justify-content:space-between;align-items:baseline}.obs.eo .eh .cc{font-size:12px;font-weight:600;color:var(--mut)}.obs.eo .eh2{margin:0 0 6px;font-size:13px;color:var(--mut)}
