@@ -146,6 +146,8 @@ ul{list-style:none;margin:0;padding:0 14px;display:grid;gap:5px}
 @media (prefers-reduced-motion:reduce){.hpn{animation:none!important}}
 #lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:12px}
 #lb img{max-width:100%;max-height:100%;border-radius:8px}
+#lb .fl .sp{width:28px;height:28px;border-color:#fff4;border-top-color:#fff}
+#plist .fm{width:28px;height:28px;object-fit:cover;border-radius:4px;display:block;cursor:zoom-in;background:var(--line)}
 
 .pill.pb{border:0;cursor:pointer;gap:3px;font-family:inherit}.pill.pb svg{width:12px;height:12px}
 .obx{margin:8px 14px 0}.eb2{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600}.eb2 svg{width:14px;height:14px}
@@ -447,7 +449,9 @@ function applyView(){
 }
 async function loadProducts(force){
   const j=await api({action:"products",pin:PIN,force:!!force});
-  PROD=(j.rows||[]).map(r=>({n:r[0],p:r[1],i:r[2],c:r[3],l:r[4],k:norm(r[0]+" "+catL(r[3]))}));
+  (PROD||[]).forEach(x=>x.mu&&URL.revokeObjectURL(x.mu));
+  /* r[5]: miniatura de la foto del producto (JPEG en base64); r[6]: id de su foto grande */
+  PROD=(j.rows||[]).map((r,ix)=>({ix,n:r[0],p:r[1],i:r[2],c:r[3],l:r[4],mu:r[5]?b64url(r[5]):"",fo:r[6]||"",k:norm(r[0]+" "+catL(r[3]))}));
   PT=Date.now();
   const cnt={};PROD.forEach(x=>cnt[x.c]=(cnt[x.c]||0)+1);
   if(S.pc&&!(S.pc in cnt))S.pc="";
@@ -462,11 +466,24 @@ function renderProd(){setHH();
   const t=S.pq.split(/\s+/).filter(Boolean),f=PROD.filter(x=>(!S.pc||x.c===S.pc)&&t.every(w=>x.k.includes(w)));
   $("#pcnt").textContent=f.length+" de "+PROD.length;
   const sh=f;$("#pex").innerHTML=S.ex?IC('<path d="M7 4l5 5 5-5M7 20l5-5 5 5"/>'):IC('<path d="M7 9l5-5 5 5M7 15l5 5 5-5"/>');$("#pex").setAttribute("aria-label",S.ex?"Colapsar todo":"Expandir todo");$("#pex").title=S.ex?"Colapsar todo":"Expandir todo";
-  $("#plist").innerHTML=sh.length?'<table><thead><tr><th>Producto</th><th class="m">Precio</th><th class="m">Imp.</th><th>Categoría</th><th>Link</th></tr></thead><tbody>'+sh.map(x=>'<tr'+(S.ex?' class="x"':'')+'><td class="n">'+esc(x.n)+'<span class="kx">'+esc(catL(x.c))+'</span></td><td class="m pr">'+pm(x.p)+'</td><td class="m'+(x.i==null?" z":"")+'">'+(x.i==null?"":pm(x.i))+'</td><td class="k">'+esc(catL(x.c))+'</td><td class="l '+(x.l==="SI"?"si":"no")+'">'+(x.l==="SI"?"Sí":x.l==="NO"?"No":esc(x.l))+'</td></tr>').join("")+'</tbody></table>':'<p class="empty">No hay productos con esta búsqueda.</p>';
+  $("#plist").innerHTML=sh.length?'<table><thead><tr><th>Producto</th><th class="m">Precio</th><th class="m">Imp.</th><th>Categoría</th><th>Link</th></tr></thead><tbody>'+sh.map(x=>'<tr'+(S.ex?' class="x"':'')+'><td class="n">'+esc(x.n)+'<span class="kx">'+esc(catL(x.c))+'</span></td><td class="m pr">'+pm(x.p)+'</td><td class="m'+(x.i==null?" z":"")+'">'+(x.i==null?"":pm(x.i))+'</td><td class="k">'+esc(catL(x.c))+'</td><td class="l '+(x.l==="SI"?"si":"no")+'">'+(x.mu?'<img class="fm" alt="Factura" src="'+x.mu+'" data-f="'+x.ix+'">':x.l==="SI"?"Sí":x.l==="NO"?"No":esc(x.l))+'</td></tr>').join("")+'</tbody></table>':'<p class="empty">No hay productos con esta búsqueda.</p>';
   const rest=f.length-sh.length;$("#pmore").hidden=rest<=0;if(rest>0)$("#pmore").textContent="Mostrar más ("+rest+" restantes)";
 }
 $("#pcat").addEventListener("change",e=>{S.pc=e.target.value;S.pl=60;renderProd()});
-$("#plist").addEventListener("click",e=>{const r=e.target.closest("tbody tr");if(r)r.classList.toggle("x")});
+$("#plist").addEventListener("click",e=>{const fm=e.target.closest(".fm");if(fm)return openFac(PROD[+fm.dataset.f]);const r=e.target.closest("tbody tr");if(r)r.classList.toggle("x")});
+const b64url=(b64,mime)=>{const b=atob(b64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return URL.createObjectURL(new Blob([u],{type:mime||"image/jpeg"}))};
+/* Foto del producto en grande, en el mismo visor que las fotos de los paquetes. Mientras llega
+   se ve la miniatura; si no se puede traer, queda la miniatura. */
+const FAC=new Map();
+async function openFac(x){
+  if(!x||!x.mu)return;
+  const lb=$("#lb"),im=$("#lb img");lb.querySelectorAll(".fl").forEach(n=>n.remove());
+  im.src=FAC.get(x.fo)||x.mu;lb.hidden=false;
+  if(!x.fo||FAC.has(x.fo))return;
+  const w=document.createElement("div");w.className="fl";w.style.position="absolute";w.innerHTML='<span class="sp"></span>';lb.append(w);
+  try{const j=await api({action:"factura",pin:PIN,id:x.fo}),u=b64url(j.b64,j.mime);FAC.set(x.fo,u);if(!lb.hidden&&im.src===x.mu)im.src=u}catch(e){}
+  w.remove();
+}
 $("#pex").addEventListener("click",()=>{S.ex=!S.ex;renderProd()});
 $("#pmore").addEventListener("click",()=>{S.pl+=60;renderProd()});
 function renderTop(){
@@ -695,7 +712,7 @@ $("#hsh").addEventListener("click",e=>{const t=e.target.closest("[data-ht]");if(
     ptr.textContent=msg;setTimeout(()=>{wait=false;close()},900);
   });
 }
-$("#lb").addEventListener("click",()=>$("#lb").hidden=true);
+$("#lb").addEventListener("click",()=>{$("#lb").hidden=true;$("#lb").querySelectorAll(".fl").forEach(n=>n.remove())});
 const RT={on:false,ids:new Set(),logs:{}};
 const rf=(()=>{let q=0;return()=>{if(q)return;q=1;setTimeout(()=>{q=0;if(!$("#app").hidden)refresh()},0)}})();
 async function fbLib(){
